@@ -1,0 +1,85 @@
+require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
+const express = require('express');
+const session = require('express-session');
+const db = require('./src/db');
+const models = require('./src/db/models');
+const { requireAuth, attachUser, requireAdmin } = require('./src/middleware/auth');
+const authRoutes = require('./src/routes/auth');
+const accountRoutes = require('./src/routes/account');
+const reportsRoutes = require('./src/routes/reports');
+const receiptsRoutes = require('./src/routes/receipts');
+const adminRoutes = require('./src/routes/admin');
+const ocr = require('./src/ocr');
+
+const SqliteStore = require('better-sqlite3-session-store')(session);
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const SESSION_SECRET = process.env.SESSION_SECRET;
+
+if (!SESSION_SECRET) {
+  console.error('ERROR: SESSION_SECRET is not set. Set it in your .env file before starting the server.');
+  process.exit(1);
+}
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.set('trust proxy', 1);
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(session({
+  store: new SqliteStore({
+    client: db,
+    expired: { clear: true, intervalMs: 15 * 60 * 1000 },
+  }),
+  name: 'expense.sid',
+  secret: SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.COOKIE_SECURE === 'true',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  },
+}));
+
+app.use(attachUser(models));
+
+app.get('/', requireAuth, (req, res) => res.redirect('/reports'));
+
+app.use('/', authRoutes);
+app.use('/account', requireAuth, accountRoutes);
+app.use('/reports', requireAuth, reportsRoutes.router);
+app.use('/receipts', requireAuth, receiptsRoutes.router);
+app.use('/admin', requireAuth, requireAdmin, adminRoutes);
+
+app.use((req, res) => {
+  res.status(404).render('error', { message: 'Page not found.' });
+});
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).render('error', { message: 'Something went wrong.' });
+});
+
+const server = app.listen(PORT, () => {
+  console.log(`Expense report service listening on port ${PORT}`);
+});
+
+async function shutdown() {
+  console.log('Shutting down...');
+  server.close();
+  await ocr.shutdown();
+  db.close();
+  process.exit(0);
+}
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

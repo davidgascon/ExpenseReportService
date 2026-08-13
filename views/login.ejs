@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log in — Expense Reports</title>
+  <%- include('partials/theme-init') %>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <h1>Log in</h1>
+    <% if (error) { %><div class="error-banner"><%= error %></div><% } %>
+    <% if (notice) { %><div class="ocr-hint"><%= notice %></div><% } %>
+    <form method="POST" action="/login">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" autocomplete="username" required autofocus>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required>
+
+      <button type="submit" class="full-width" style="margin-top:18px;">Log in</button>
+    </form>
+    <p class="small muted" style="margin-top:16px;">
+      Don't have an account? <a href="/register">Register here</a>.
+    </p>
+  </div>
+  <%- include('partials/footer') %>
+</body>
+</html>

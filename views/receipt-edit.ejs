@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Receipt — Expense Reports</title>
+  <%- include('partials/theme-init') %>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/topbar') %>
+  <div class="container">
+    <div class="card">
+      <h2 style="margin-top:0;">Edit receipt</h2>
+      <% if (error) { %><div class="error-banner"><%= error %></div><% } %>
+      <% if (receipt.ocr_status === 'pending') { %>
+        <div class="ocr-hint">This receipt is still being scanned in the background — feel free to fill in the details yourself now, or come back in a minute or two once scanning finishes.</div>
+      <% } %>
+
+      <div class="actions-row" style="margin-bottom:14px;">
+        <a class="file-link" href="/receipts/<%= receipt.id %>/file" target="_blank">View original file</a>
+      </div>
+
+      <form method="POST" action="/receipts/<%= receipt.id %>/edit">
+        <input type="hidden" name="return_to" value="<%= returnTo %>">
+
+        <label for="receipt_date">Date</label>
+        <input type="date" id="receipt_date" name="receipt_date" value="<%= receipt.receipt_date || '' %>">
+
+        <label for="total">Total ($)</label>
+        <input type="number" id="total" name="total" step="0.01" min="0" value="<%= receipt.total ? receipt.total.toFixed(2) : '' %>" required>
+
+        <label for="project_name">Project name/number <span class="field-hint" style="display:inline;">(just for your own reference — not used on the exported spreadsheet)</span></label>
+        <input type="text" id="project_name" name="project_name" value="<%= receipt.project_name || '' %>" placeholder="e.g. Downtown Chiller Retrofit">
+
+        <label for="gl_code">GL code <span class="field-hint" style="display:inline;">(this is what gets put on the exported spreadsheet)</span></label>
+        <input type="text" id="gl_code" name="gl_code" value="<%= receipt.gl_code || '' %>" placeholder="e.g. 86259049-000-95-90">
+
+        <label for="description">Description <span class="field-hint" style="display:inline;">(this is what gets put on the exported spreadsheet)</span></label>
+        <input type="text" id="description" name="description" value="<%= receipt.description || '' %>" placeholder="Project Lunch: (list who attended)">
+
+        <label for="attendees">Who attended <span class="field-hint" style="display:inline;">(optional)</span></label>
+        <input type="text" id="attendees" name="attendees" value="<%= receipt.attendees || '' %>" placeholder="e.g. David Gascon, Jane Doe">
+
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes" placeholder="Purpose of the expense, client name, etc."><%= receipt.notes || '' %></textarea>
+
+        <div class="actions-row">
+          <button type="submit">Save Changes</button>
+          <a href="<%= returnTo === 'report' && receipt.report_id ? '/reports/' + receipt.report_id : '/receipts' %>" class="btn secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  <%- include('partials/footer') %>
+  <script src="/js/theme.js"></script>
+</body>
+</html>

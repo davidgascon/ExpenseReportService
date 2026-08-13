@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt Inbox — Expense Reports</title>
+  <%- include('partials/theme-init') %>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/topbar') %>
+  <div class="container">
+
+    <% if (error) { %><div class="error-banner"><%= error %></div><% } %>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Upload a receipt</h2>
+      <p class="small muted" style="margin-top:-6px;">
+        Receipts land here first — you'll check off the ones you want when you're ready to build a report.
+      </p>
+      <form id="scanForm" method="POST" action="/receipts/scan" enctype="multipart/form-data">
+        <label for="receipt">Receipt image(s) or PDF(s)</label>
+        <input type="file" id="receipt" name="receipt" accept="image/jpeg,image/png,image/heic,image/heif,application/pdf" multiple required>
+        <p class="field-hint">iPhone photos (HEIC) are supported — they're automatically converted so they preview correctly everywhere.</p>
+        <p class="field-hint">You can select more than one file at once — hold Ctrl/Cmd (or Shift for a range) in the file picker.</p>
+        <div class="actions-row">
+          <button type="submit" id="scanSubmitBtn">Scan Receipt(s)</button>
+        </div>
+        <p class="small muted">We'll scan each one for a date and total in the background — you can keep working while that runs, and fix anything it gets wrong afterward.</p>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Unassigned receipts</h2>
+      <p class="small muted" style="margin-top:-6px;">
+        These haven't been added to a report yet. Open a draft report and check off the ones you want.
+      </p>
+      <% if (receipts.length === 0) { %>
+        <div class="empty-state">Nothing in your inbox right now.</div>
+      <% } else { %>
+        <div class="table-wrap">
+        <table class="receipt-table" id="receiptTable" data-has-pending="<%= receipts.some(r => r.ocr_status === 'pending') %>">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Project</th>
+              <th>GL Code</th>
+              <th>Attendees</th>
+              <th>Description</th>
+              <th>Receipt</th>
+              <th class="amount">Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% receipts.forEach(function(r) { %>
+              <% if (r.ocr_status === 'pending') { %>
+                <tr>
+                  <td colspan="7">
+                    <span class="spinner" aria-hidden="true"></span>
+                    Scanning receipt… (usually takes a minute or two)
+                    — <a class="file-link" href="/receipts/<%= r.id %>/edit">fill in details now instead</a>
+                  </td>
+                  <td>
+                    <form method="POST" action="/receipts/<%= r.id %>/delete" onsubmit="return confirm('Delete this receipt permanently?');">
+                      <button type="submit" class="danger" style="padding:4px 10px;">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              <% } else { %>
+                <tr>
+                  <td><%= r.receipt_date || '—' %></td>
+                  <td><%= r.project_name || '—' %></td>
+                  <td><%= r.gl_code || '—' %></td>
+                  <td><%= r.attendees || '—' %></td>
+                  <td><%= r.description || '—' %></td>
+                  <td><a class="file-link js-view-file" href="/receipts/<%= r.id %>/file" data-file-name="<%= r.original_name || 'Receipt' %>" data-file-type="<%= /\.(jpe?g|png|gif|webp|bmp)$/i.test(r.original_name || '') ? 'image' : 'pdf' %>" target="_blank">View file</a></td>
+                  <td class="amount">$<%= r.total.toFixed(2) %></td>
+                  <td style="white-space:nowrap;">
+                    <a href="/receipts/<%= r.id %>/edit" class="btn secondary" style="padding:4px 10px;">Edit</a>
+                    <form method="POST" action="/receipts/<%= r.id %>/delete" style="display:inline;" onsubmit="return confirm('Delete this receipt permanently?');">
+                      <button type="submit" class="danger" style="padding:4px 10px;">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              <% } %>
+            <% }); %>
+          </tbody>
+        </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+  <%- include('partials/footer') %>
+  <script src="/js/theme.js"></script>
+  <script src="/js/scan.js"></script>
+  <script src="/js/filePreview.js"></script>
+</body>
+</html>

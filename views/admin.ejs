@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <%- include('partials/theme-init') %>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/topbar') %>
+  <div class="container wide">
+    <% if (resetSuccessFor) { %>
+      <div class="ocr-hint">Password reset for <%= resetSuccessFor %>.</div>
+    <% } %>
+    <div class="card">
+      <h2 style="margin-top:0;">Usage overview</h2>
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-num"><%= totals.users %></div>
+          <div class="stat-label">Users</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num"><%= totals.reports %></div>
+          <div class="stat-label">Reports</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num"><%= totals.reportsSubmitted %></div>
+          <div class="stat-label">Submitted</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num"><%= totals.reportsPaid %></div>
+          <div class="stat-label">Paid</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num"><%= totals.receipts %></div>
+          <div class="stat-label">Receipts</div>
+        </div>
+        <% actionCounts.forEach(function(a) { %>
+          <div class="stat-box">
+            <div class="stat-num"><%= a.n %></div>
+            <div class="stat-label"><%= a.action.replace(/_/g, ' ') %></div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <% if (pendingUsers.length > 0) { %>
+      <div class="card">
+        <h2 style="margin-top:0;">Pending approval</h2>
+        <p class="small muted" style="margin-top:-6px;">
+          These accounts have registered but can't log in yet until you approve them.
+        </p>
+        <div class="admin-table-wrap">
+          <table class="receipt-table compact">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Registered</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% pendingUsers.forEach(function(u) { %>
+                <tr>
+                  <td><%= u.display_name %></td>
+                  <td class="muted"><%= u.username %></td>
+                  <td class="muted"><%= new Date(u.created_at + 'Z').toLocaleString() %></td>
+                  <td style="white-space:nowrap;">
+                    <form method="POST" action="/admin/users/<%= u.id %>/approve" style="display:inline;">
+                      <button type="submit" style="padding:4px 10px;">Approve</button>
+                    </form>
+                    <form method="POST" action="/admin/users/<%= u.id %>/deny" style="display:inline;" onsubmit="return confirm('Delete this pending registration? This can\'t be undone.');">
+                      <button type="submit" class="danger" style="padding:4px 10px;">Deny</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Activity by user</h2>
+      <% if (userStats.length === 0) { %>
+        <div class="empty-state">No users yet.</div>
+      <% } else { %>
+        <div class="admin-table-wrap">
+          <table class="receipt-table compact">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Logins</th>
+                <th>Uploads</th>
+                <th>Attaches</th>
+                <th>Reports created</th>
+                <th>Submitted</th>
+                <th>Paid</th>
+                <th>Exports</th>
+                <th>Last active</th>
+                <th>Joined</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% userStats.forEach(function(u) { %>
+                <tr>
+                  <td><%= u.display_name %> <span class="muted small">(<%= u.username %>)</span></td>
+                  <td><% if (u.is_admin) { %><span class="badge submitted">admin</span><% } else { %><span class="muted">user</span><% } %></td>
+                  <td><%= u.logins %></td>
+                  <td><%= u.uploads %></td>
+                  <td><%= u.attaches %></td>
+                  <td><%= u.reports_created %></td>
+                  <td><%= u.reports_submitted %></td>
+                  <td><%= u.reports_paid %></td>
+                  <td><%= u.exports %></td>
+                  <td class="muted"><%= u.last_active ? new Date(u.last_active + 'Z').toLocaleString() : '—' %></td>
+                  <td class="muted"><%= new Date(u.joined_at + 'Z').toLocaleDateString() %></td>
+                  <td><a href="/admin/users/<%= u.id %>/reset-password" class="btn secondary" style="padding:4px 10px; white-space:nowrap;">Reset password</a></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Recent activity</h2>
+      <% if (recentActivity.length === 0) { %>
+        <div class="empty-state">Nothing has happened yet.</div>
+      <% } else { %>
+        <div class="admin-table-wrap">
+          <table class="receipt-table compact">
+            <thead>
+              <tr>
+                <th>When</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Detail</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% recentActivity.forEach(function(a) { %>
+                <tr>
+                  <td class="muted"><%= new Date(a.created_at + 'Z').toLocaleString() %></td>
+                  <td><%= a.display_name || 'Unknown' %></td>
+                  <td><%= a.action.replace(/_/g, ' ') %></td>
+                  <td class="muted"><%= a.detail || '' %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+  <%- include('partials/footer') %>
+  <script src="/js/theme.js"></script>
+</body>
+</html>

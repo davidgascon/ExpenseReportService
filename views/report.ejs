@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= report.name %> — Expense Reports</title>
+  <%- include('partials/theme-init') %>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/topbar') %>
+  <div class="container">
+
+    <div class="card">
+      <div class="top-header">
+        <div style="flex:1; min-width:220px;">
+          <% if (report.status === 'draft') { %>
+            <form method="POST" action="/reports/<%= report.id %>/rename" class="inline-form">
+              <input type="text" name="name" value="<%= report.name %>" style="font-size:1.1rem; font-weight:600;">
+              <button type="submit" class="secondary">Rename</button>
+            </form>
+          <% } else { %>
+            <h1 style="margin:0 0 4px 0; font-size:1.3rem;"><%= report.name %></h1>
+          <% } %>
+          <div class="report-meta" style="margin-top:6px;">
+            <span class="badge <%= report.status %>"><%= report.status %></span>
+            <span class="muted small"> · created <%= new Date(report.created_at + 'Z').toLocaleDateString() %></span>
+            <% if (report.submitted_at) { %>
+              <span class="muted small"> · submitted <%= new Date(report.submitted_at + 'Z').toLocaleDateString() %></span>
+            <% } %>
+            <% if (report.paid_at) { %>
+              <span class="muted small"> · paid <%= new Date(report.paid_at + 'Z').toLocaleDateString() %></span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <% if (report.status === 'draft') { %>
+          <form method="POST" action="/reports/<%= report.id %>/submit" onsubmit="return confirm('Submit this report? You will not be able to add or remove receipts after submitting.');">
+            <button type="submit">Submit Report</button>
+          </form>
+        <% } else { %>
+          <form method="POST" action="/reports/<%= report.id %>/reopen">
+            <button type="submit" class="secondary">Reopen for editing</button>
+          </form>
+        <% } %>
+        <% if (report.status === 'submitted') { %>
+          <form method="POST" action="/reports/<%= report.id %>/mark-paid" onsubmit="return confirm('Mark this report as paid? This just tracks that you were reimbursed — it doesn\'t submit anything anywhere.');">
+            <button type="submit">Mark as Paid</button>
+          </form>
+        <% } %>
+        <a href="/reports/<%= report.id %>/export" class="btn secondary">Export PDF (with receipts)</a>
+        <a href="/reports/<%= report.id %>/export-excel" class="btn secondary">Export Excel (MMFS)</a>
+        <form method="POST" action="/reports/<%= report.id %>/delete" class="delete-inline" onsubmit="return confirm('Delete this report? Its receipts will go back to your inbox, unassigned — this just removes the report itself and cannot be undone.');">
+          <button type="submit" class="danger">Delete Report</button>
+        </form>
+        <a href="/reports" class="btn secondary">Back to all reports</a>
+      </div>
+    </div>
+
+    <% if (error) { %><div class="error-banner"><%= error %></div><% } %>
+
+    <% if (report.status === 'draft') { %>
+      <div class="card">
+        <h2 style="margin-top:0;">Add receipts from your inbox</h2>
+        <p class="small muted" style="margin-top:-6px;">
+          Check off the ones that belong in this report. Need to scan a new receipt first?
+          <a href="/receipts">Go to your inbox</a>.
+        </p>
+        <% if (inboxReceipts.length === 0) { %>
+          <div class="empty-state">Your inbox is empty — nothing to add right now.</div>
+        <% } else { %>
+          <form method="POST" action="/reports/<%= report.id %>/receipts/attach" id="attachForm">
+            <div class="actions-row" style="margin-top:0;">
+              <button type="button" class="secondary" onclick="toggleAllReceipts(true)">Select All</button>
+              <button type="button" class="secondary" onclick="toggleAllReceipts(false)">Select None</button>
+            </div>
+            <div class="inbox-picker">
+              <% inboxReceipts.forEach(function(r) { %>
+                <label class="inbox-picker-row">
+                  <input type="checkbox" name="receipt_ids" value="<%= r.id %>" class="receipt-checkbox">
+                  <span>
+                    <strong><%= r.receipt_date || 'No date' %> — $<%= r.total.toFixed(2) %></strong>
+                    <% if (r.ocr_status === 'pending') { %><span class="badge draft" style="margin-left:6px;">scanning…</span><% } %>
+                    <div class="receipt-summary-line">
+                      <span>Project: <%= r.project_name || '—' %></span>
+                      <span>GL Code: <%= r.gl_code || '—' %></span>
+                      <span>Attendees: <%= r.attendees || '—' %></span>
+                      <a class="file-link js-view-file" href="/receipts/<%= r.id %>/file" data-file-name="<%= r.original_name || 'Receipt' %>" data-file-type="<%= /\.(jpe?g|png|gif|webp|bmp)$/i.test(r.original_name || '') ? 'image' : 'pdf' %>" target="_blank">View file</a>
+                    </div>
+                  </span>
+                </label>
+              <% }); %>
+            </div>
+            <div class="actions-row">
+              <button type="submit">Add Selected to This Report</button>
+            </div>
+          </form>
+          <script>
+            function toggleAllReceipts(checked) {
+              document.querySelectorAll('#attachForm .receipt-checkbox').forEach(function (cb) { cb.checked = checked; });
+            }
+          </script>
+        <% } %>
+      </div>
+    <% } %>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Receipts in this report</h2>
+      <% if (receipts.length === 0) { %>
+        <div class="empty-state">No receipts added yet.</div>
+      <% } else { %>
+        <div class="table-wrap">
+        <table class="receipt-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Project</th>
+              <th>GL Code</th>
+              <th>Attendees</th>
+              <th>Description</th>
+              <th>Receipt</th>
+              <th class="amount">Total</th>
+              <% if (report.status === 'draft') { %><th></th><% } %>
+            </tr>
+          </thead>
+          <tbody>
+            <% receipts.forEach(function(r) { %>
+              <tr>
+                <td><%= r.receipt_date || '—' %></td>
+                <td><%= r.project_name || '—' %></td>
+                <td><%= r.gl_code || '—' %></td>
+                <td><%= r.attendees || '—' %></td>
+                <td><%= r.description || '—' %></td>
+                <td><a class="file-link js-view-file" href="/receipts/<%= r.id %>/file" data-file-name="<%= r.original_name || 'Receipt' %>" data-file-type="<%= /\.(jpe?g|png|gif|webp|bmp)$/i.test(r.original_name || '') ? 'image' : 'pdf' %>" target="_blank">View file</a></td>
+                <td class="amount">$<%= r.total.toFixed(2) %></td>
+                <% if (report.status === 'draft') { %>
+                  <td style="white-space:nowrap;">
+                    <a href="/receipts/<%= r.id %>/edit?from=report" class="btn secondary" style="padding:4px 10px;">Edit</a>
+                    <form method="POST" action="/reports/<%= report.id %>/receipts/<%= r.id %>/detach" style="display:inline;" onsubmit="return confirm('Remove this receipt from the report? It will go back to your inbox.');">
+                      <button type="submit" class="secondary" style="padding:4px 10px;">Remove</button>
+                    </form>
+                  </td>
+                <% } %>
+              </tr>
+            <% }); %>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="6">Total</td>
+              <td class="amount">$<%= total.toFixed(2) %></td>
+              <% if (report.status === 'draft') { %><td></td><% } %>
+            </tr>
+          </tfoot>
+        </table>
+        </div>
+      <% } %>
+    </div>
+
+  </div>
+  <%- include('partials/footer') %>
+  <script src="/js/theme.js"></script>
+  <script src="/js/filePreview.js"></script>
+</body>
+</html>

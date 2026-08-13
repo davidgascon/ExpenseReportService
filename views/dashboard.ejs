@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Expense Reports</title>
+  <%- include('partials/theme-init') %>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/topbar') %>
+  <div class="container">
+    <div class="card">
+      <h2 style="margin-top:0;">At a glance</h2>
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-num">$<%= unassignedTotal.toFixed(2) %></div>
+          <div class="stat-label">In receipts, no report yet</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">$<%= submittedTotal.toFixed(2) %></div>
+          <div class="stat-label">Submitted, waiting to be paid</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Start a new report</h2>
+      <form method="POST" action="/reports" class="inline-form">
+        <input type="text" name="name" placeholder="e.g. August 2026, or leave blank to use today's date" style="flex:1;">
+        <button type="submit">New Report</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Your reports</h2>
+      <% if (reports.length === 0) { %>
+        <div class="empty-state">You don't have any expense reports yet. Create one above to get started.</div>
+      <% } else { %>
+        <ul class="report-list">
+          <% reports.forEach(function(r) { %>
+            <li>
+              <div>
+                <a class="report-name" href="/reports/<%= r.id %>"><%= r.name %></a>
+                <div class="report-meta">
+                  <%= r.receipt_count %> receipt<%= r.receipt_count === 1 ? '' : 's' %> ·
+                  $<%= r.total_amount.toFixed(2) %> ·
+                  created <%= new Date(r.created_at + 'Z').toLocaleDateString() %>
+                </div>
+              </div>
+              <span class="badge <%= r.status %>"><%= r.status %></span>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+    </div>
+  </div>
+  <%- include('partials/footer') %>
+  <script src="/js/theme.js"></script>
+</body>
+</html>

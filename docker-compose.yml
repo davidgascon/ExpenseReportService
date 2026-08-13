@@ -1,0 +1,31 @@
+services:
+  app:
+    build: .
+    image: expense-report-service:latest
+    container_name: expense-reports
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - DATA_DIR=/app/data
+    volumes:
+      - ./data:/app/data
+
+  # Optional: uncomment to put nginx in front of the app for a normal domain
+  # name + HTTPS. Point deploy/nginx-example.conf's proxy_pass at
+  # "http://app:3000" instead of 127.0.0.1 when running this way, and handle
+  # certificates separately (e.g. certbot on the host, or a certbot
+  # container/Caddy if you'd rather manage TLS entirely in Docker).
+  #
+  # nginx:
+  #   image: nginx:stable
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - app
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./deploy/nginx-example.conf:/etc/nginx/conf.d/default.conf:ro

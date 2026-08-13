@@ -1,0 +1,14 @@
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('theme');
+      // Defaults to dark unless the user has explicitly chosen light mode.
+      if (saved !== 'light') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    } catch (e) {
+      // localStorage unavailable — still default to dark.
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  })();
+</script>

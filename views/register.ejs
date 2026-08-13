@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — Expense Reports</title>
+  <%- include('partials/theme-init') %>
+  <link rel="stylesheet" href="/css/style.css">
+  <% if (recaptchaSiteKey) { %><script src="https://www.google.com/recaptcha/api.js" async defer></script><% } %>
+</head>
+<body>
+  <div class="auth-container">
+    <h1>Create your account</h1>
+    <% if (error) { %><div class="error-banner"><%= error %></div><% } %>
+    <form method="POST" action="/register">
+      <label for="display_name">Your name</label>
+      <input type="text" id="display_name" name="display_name" value="<%= values.display_name || '' %>" required autofocus>
+
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" value="<%= values.username || '' %>" autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="new-password" required minlength="4">
+
+      <label for="confirm_password">Confirm password</label>
+      <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" required minlength="4">
+
+      <% if (recaptchaSiteKey) { %>
+        <div class="g-recaptcha" data-sitekey="<%= recaptchaSiteKey %>" style="margin-top:14px;"></div>
+      <% } %>
+
+      <button type="submit" class="full-width" style="margin-top:18px;">Create account</button>
+    </form>
+    <p class="field-hint" style="margin-top:14px;">
+      After you register, an admin needs to approve your account before you can log in.
+    </p>
+    <p class="small muted" style="margin-top:8px;">
+      Already have an account? <a href="/login">Log in</a>.
+    </p>
+  </div>
+  <%- include('partials/footer') %>
+</body>
+</html>

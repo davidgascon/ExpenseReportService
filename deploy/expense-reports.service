@@ -1,0 +1,23 @@
+[Unit]
+Description=Expense Report Service
+After=network.target
+
+[Service]
+Type=simple
+# Update these two paths/user if you install somewhere other than /opt/expense-report-service
+# or run as a user other than "expense".
+User=expense
+WorkingDirectory=/opt/expense-report-service
+ExecStart=/usr/bin/node /opt/expense-report-service/server.js
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=/opt/expense-report-service/.env
+
+# Basic hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/expense-report-service/data
+
+[Install]
+WantedBy=multi-user.target

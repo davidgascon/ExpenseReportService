@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Reports</title>
+  <%- include('partials/theme-init') %>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+    <%- include('partials/topbar') %>
+  <% } %>
+  <div class="container">
+    <div class="card">
+      <p><%= message %></p>
+      <a href="/reports" class="btn secondary">Back to reports</a>
+    </div>
+  </div>
+  <%- include('partials/footer') %>
+  <script src="/js/theme.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account — Expense Reports</title>
+  <%- include('partials/theme-init') %>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/topbar') %>
+  <div class="container">
+
+    <% if (error) { %><div class="error-banner"><%= error %></div><% } %>
+    <% if (success) { %><div class="ocr-hint"><%= success %></div><% } %>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Your info</h2>
+      <form method="POST" action="/account/profile">
+        <label for="display_name">Display name</label>
+        <input type="text" id="display_name" name="display_name" value="<%= currentUser.display_name %>" required>
+        <p class="field-hint">Username: <strong><%= currentUser.username %></strong> (can't be changed here)</p>
+
+        <label for="employee_number">Employee # <span class="field-hint" style="display:inline;">(used on the exported spreadsheet)</span></label>
+        <input type="text" id="employee_number" name="employee_number" value="<%= currentUser.employee_number || '' %>" placeholder="e.g. 6288">
+
+        <label for="department">Department <span class="field-hint" style="display:inline;">(used on the exported spreadsheet)</span></label>
+        <input type="text" id="department" name="department" value="<%= currentUser.department || '' %>" placeholder="e.g. 86 - Controls Specialist">
+
+        <div class="actions-row">
+          <button type="submit">Save Info</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Change password</h2>
+      <form method="POST" action="/account/password">
+        <label for="current_password">Current password</label>
+        <input type="password" id="current_password" name="current_password" required>
+
+        <label for="new_password">New password</label>
+        <input type="password" id="new_password" name="new_password" minlength="4" required>
+
+        <label for="confirm_password">Confirm new password</label>
+        <input type="password" id="confirm_password" name="confirm_password" minlength="4" required>
+
+        <div class="actions-row">
+          <button type="submit">Change Password</button>
+        </div>
+      </form>
+      <p class="small muted" style="margin-top:12px;">
+        Forgot your current password entirely? Ask an admin to reset it for you from the admin dashboard.
+      </p>
+    </div>
+
+  </div>
+  <%- include('partials/footer') %>
+  <script src="/js/theme.js"></script>
+</body>
+</html>

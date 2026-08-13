@@ -1,0 +1,481 @@
+:root {
+  --bg: #f5f6f8;
+  --card: #ffffff;
+  --border: #e1e4e8;
+  --text: #1f2328;
+  --muted: #656d76;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-tint: #eef2ff;
+  --danger: #dc2626;
+  --danger-tint: #fee2e2;
+  --success: #16a34a;
+  --draft: #b45309;
+  --draft-tint: #fef3c7;
+  --success-tint: #dcfce7;
+  --error-bg: #fef2f2;
+  --error-border: #fecaca;
+  --error-text: #991b1b;
+  --hint-bg: #eff6ff;
+  --hint-border: #bfdbfe;
+  --hint-text: #1e3a8a;
+  --radius: 8px;
+}
+
+[data-theme="dark"] {
+  --bg: #14171c;
+  --card: #1c2027;
+  --border: #2d323b;
+  --text: #e6e8eb;
+  --muted: #9aa4af;
+  --primary: #5b8def;
+  --primary-dark: #7ea3f2;
+  --primary-tint: #1e2a44;
+  --danger: #f87171;
+  --danger-tint: #3a1e1e;
+  --success: #4ade80;
+  --draft: #fbbf24;
+  --draft-tint: #3a2f10;
+  --success-tint: #163223;
+  --error-bg: #2a1616;
+  --error-border: #5a2626;
+  --error-text: #fca5a5;
+  --hint-bg: #16233a;
+  --hint-border: #274672;
+  --hint-text: #a9c3ef;
+}
+
+* { box-sizing: border-box; }
+
+html { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background-color 0.15s ease, color 0.15s ease;
+  /* Safety net: every element that legitimately needs to scroll
+     horizontally (wide tables, the file-preview panel) does so within its
+     own container (.table-wrap/.admin-table-wrap, etc.) - the page itself
+     should never need to. */
+  overflow-x: hidden;
+}
+
+body > .container { flex: 1; width: 100%; }
+body > .auth-container { flex: 1; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 14px 24px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar a.brand {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.topbar .user-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.topbar-username {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.container.wide { max-width: 1200px; }
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.stat-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+  text-align: center;
+}
+.stat-box .stat-num { font-size: 1.6rem; font-weight: 700; }
+.stat-box .stat-label { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; margin-top: 2px; }
+
+.admin-table-wrap, .table-wrap { overflow-x: auto; }
+.receipt-table.compact th, .receipt-table.compact td { padding: 7px 8px; font-size: 0.82rem; white-space: nowrap; }
+
+.auth-container {
+  max-width: 380px;
+  margin: 60px auto;
+  padding: 32px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.auth-container h1 {
+  font-size: 1.4rem;
+  margin-top: 0;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+h1, h2, h3 { line-height: 1.3; }
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  margin-top: 12px;
+}
+
+input[type=text], input[type=password], input[type=date], input[type=number], input[type=file], textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+textarea { resize: vertical; min-height: 60px; }
+
+button, .btn {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+button:hover, .btn:hover { background: var(--primary-dark); }
+
+button.secondary, .btn.secondary {
+  background: transparent;
+  color: var(--primary);
+}
+button.secondary:hover, .btn.secondary:hover { background: var(--primary-tint); }
+
+button.danger, .btn.danger {
+  background: transparent;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+button.danger:hover { background: var(--danger-tint); }
+
+.full-width { width: 100%; }
+
+.error-banner {
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  color: var(--error-text);
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.report-list { list-style: none; padding: 0; margin: 0; }
+.report-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.report-list li:last-child { border-bottom: none; }
+.report-list a.report-name { font-weight: 600; color: var(--text); text-decoration: none; font-size: 1.02rem; }
+.report-list a.report-name:hover { color: var(--primary); }
+.report-meta { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.badge.draft { background: var(--draft-tint); color: var(--draft); }
+.badge.submitted { background: var(--hint-bg); color: var(--hint-text); }
+.badge.paid { background: var(--success-tint); color: var(--success); }
+
+.receipt-table { width: 100%; border-collapse: collapse; }
+.receipt-table th, .receipt-table td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+  vertical-align: top;
+}
+.receipt-table th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; }
+.receipt-table td.amount { text-align: right; font-variant-numeric: tabular-nums; }
+.receipt-table tfoot td { font-weight: 700; border-bottom: none; padding-top: 14px; }
+
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inline-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.inline-form input { flex: 1; min-width: 0; }
+
+.muted { color: var(--muted); }
+.small { font-size: 0.82rem; }
+
+.actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+.ocr-hint {
+  background: var(--hint-bg);
+  border: 1px solid var(--hint-border);
+  color: var(--hint-text);
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 14px;
+}
+
+a.file-link { color: var(--primary); text-decoration: none; font-size: 0.85rem; }
+a.file-link:hover { text-decoration: underline; }
+
+.empty-state { text-align: center; color: var(--muted); padding: 40px 0; }
+
+form.delete-inline { display: inline; }
+
+.top-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: 0.9rem;
+}
+.top-nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+.top-nav a:hover { color: var(--primary); }
+
+.theme-toggle {
+  padding: 4px 10px;
+  font-size: 0.82rem;
+}
+
+.site-footer {
+  text-align: center;
+  padding: 24px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.inbox-picker {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+.inbox-picker-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+.inbox-picker-row:last-child { border-bottom: none; }
+.inbox-picker-row input[type=checkbox] { margin-top: 3px; width: auto; }
+.inbox-picker-row .receipt-summary-line { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 0.8rem; }
+
+.field-hint { color: var(--muted); font-size: 0.78rem; margin-top: 2px; }
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.spinner-lg { width: 34px; height: 34px; border-width: 3px; margin: 0 auto 14px auto; display: block; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.loading-box {
+  background: var(--card);
+  color: var(--text);
+  padding: 28px 40px;
+  border-radius: var(--radius);
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+.loading-box p { margin: 0; font-size: 0.9rem; }
+
+.file-preview-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 50%;
+  min-width: 320px;
+  background: var(--card);
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  z-index: 1100;
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+}
+.file-preview-panel.open { transform: translateX(0); }
+
+.file-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.file-preview-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-preview-newtab {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.82rem;
+  margin-right: 14px;
+}
+.file-preview-newtab:hover { text-decoration: underline; }
+.file-preview-close {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.file-preview-close:hover { color: var(--text); }
+.file-preview-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  background: #525659;
+}
+.file-preview-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.file-preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Shrinks the main page to the left half of the window while a preview
+   panel is open (see filePreview.js), so the page and the receipt sit
+   side-by-side instead of the panel just covering part of the page. */
+body.file-preview-active {
+  margin-right: 50%;
+  transition: margin-right 0.2s ease;
+}
+
+@media (max-width: 900px) {
+  .file-preview-panel { width: 100%; min-width: 0; }
+  /* Panel is full-width on small screens, so there's no "side-by-side" to
+     make room for - shifting the page left here would just squash it. */
+  body.file-preview-active { margin-right: 0; }
+}
+
+/* Mobile layout. The topbar was the main offender - "My Reports / Receipt
+   Inbox / Admin" plus "+ Add Receipt" / theme toggle / name / "Log out"
+   all tried to fit on one un-wrapping row, which forced the whole page
+   wider than the screen instead of actually wrapping. Stacking the topbar
+   into its own rows (brand, then nav, then account actions) and trimming
+   padding/font-size reclaims enough width that everything fits without
+   the page itself ever needing to scroll sideways. */
+@media (max-width: 640px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 14px;
+    gap: 8px;
+  }
+  .top-nav { gap: 6px 14px; font-size: 0.85rem; }
+  .user-info { font-size: 0.85rem; }
+  /* Icon-only theme toggle on narrow screens - the word "Dark"/"Light"
+     isn't worth the horizontal space once everything else needs room too. */
+  .theme-toggle-label { display: none; }
+  .theme-toggle { padding: 4px 8px; }
+
+  .container { padding: 14px; }
+  .container.wide { padding: 14px; }
+  .card { padding: 14px; }
+  .auth-container { padding: 20px; margin: 32px auto; }
+
+  /* Buttons/links inside a card's action row are easier to tap at full
+     width than squeezed side by side on a narrow screen. */
+  .actions-row .btn, .actions-row button { flex: 1 1 auto; text-align: center; }
+}
