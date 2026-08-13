@@ -7,14 +7,28 @@ function showLoadingOverlay(message) {
 
 document.addEventListener('DOMContentLoaded', function () {
   var form = document.getElementById('scanForm');
+  var submitBtn = document.getElementById('scanSubmitBtn');
   if (form) {
     form.addEventListener('submit', function () {
-      var btn = document.getElementById('scanSubmitBtn');
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Uploading…';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Uploading…';
       }
       showLoadingOverlay('Uploading receipt and starting the scan…');
+    });
+  }
+
+  // Picking file(s) is already the deliberate action here (there's nothing
+  // else to fill in first) — submit right away instead of making the user
+  // also click "Scan Receipt(s)" as a separate step. Clicking the button
+  // programmatically (rather than form.submit()) keeps the browser's native
+  // required-field validation and the submit listener above both in play.
+  var fileInput = document.getElementById('receipt');
+  if (fileInput && submitBtn) {
+    fileInput.addEventListener('change', function () {
+      if (fileInput.files && fileInput.files.length > 0) {
+        submitBtn.click();
+      }
     });
   }
 
