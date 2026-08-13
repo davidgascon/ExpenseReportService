@@ -1,4 +1,16 @@
 require('dotenv').config();
+
+// Every displayed date/time (admin dashboard, reports, dashboard) is
+// rendered server-side via Date.toLocaleString()/toLocaleDateString(), which
+// follows this process's timezone - not the visiting browser's. Without
+// this, that defaults to the container's own timezone (UTC, for the
+// node:20-bookworm-slim image used in the Dockerfile), showing everyone
+// times that are hours off from wall-clock Pacific time. Set via TZ here
+// (rather than in docker-compose.yml) so it's correct no matter how the
+// server is actually run. Still overridable via an actual TZ env var if
+// this is ever deployed somewhere other than the Pacific timezone.
+process.env.TZ = process.env.TZ || 'America/Los_Angeles';
+
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
