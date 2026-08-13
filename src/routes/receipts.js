@@ -140,7 +140,7 @@ async function normalizeImageOrientation(filePath) {
 
 function renderInbox(req, res, extra) {
   const receipts = models.listUnassignedReceiptsForUser(req.user.id);
-  res.render('inbox', { receipts, error: null, ...extra });
+  res.render('inbox', { receipts, error: null, success: null, ...extra });
 }
 
 // Runs in the background (not awaited by the request) so a slow OCR pass
@@ -164,7 +164,11 @@ function runOcrInBackground(receiptId, filePath) {
 }
 
 router.get('/', (req, res) => {
-  renderInbox(req, res, {});
+  const uploadedCount = Number(req.query.uploaded);
+  const success = uploadedCount > 0
+    ? `${uploadedCount} receipt${uploadedCount === 1 ? '' : 's'} uploaded — we're scanning ${uploadedCount === 1 ? 'it' : 'them'} now in the background. Go ahead and upload the next one, or come back later to fill in details.`
+    : null;
+  renderInbox(req, res, { success });
 });
 
 // Upload one or more receipts at once: save each and create its row
@@ -247,7 +251,7 @@ router.post('/scan', (req, res) => {
       });
     }
 
-    res.redirect('/receipts');
+    res.redirect(`/receipts?uploaded=${uploadedForEmail.length}`);
   });
 });
 
