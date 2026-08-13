@@ -1,3 +1,5 @@
+const { getMissingProfileFields } = require('../profileFields');
+
 function requireAuth(req, res, next) {
   if (req.session && req.session.userId) {
     return next();
@@ -13,10 +15,12 @@ function attachUser(models) {
       if (user) {
         req.user = user;
         res.locals.currentUser = user;
+        res.locals.missingProfileFields = getMissingProfileFields(user);
         return next();
       }
     }
     res.locals.currentUser = null;
+    res.locals.missingProfileFields = [];
     next();
   };
 }

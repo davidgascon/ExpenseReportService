@@ -237,6 +237,7 @@ button.danger:hover { background: var(--danger-tint); }
 .badge.draft { background: var(--draft-tint); color: var(--draft); }
 .badge.submitted { background: var(--hint-bg); color: var(--hint-text); }
 .badge.paid { background: var(--success-tint); color: var(--success); }
+.badge.missing-info { background: var(--hint-bg); color: var(--hint-text); cursor: help; }
 
 .receipt-table { width: 100%; border-collapse: collapse; }
 .receipt-table th, .receipt-table td {

@@ -123,6 +123,13 @@ if (!columnNames('users').includes('department')) {
   db.exec("ALTER TABLE users ADD COLUMN department TEXT NOT NULL DEFAULT ''");
 }
 
+// Optional email, used to send a "for your records" copy of each upload
+// batch (see src/mailer.js) - blank is fine and simply means that user never
+// gets emailed.
+if (!columnNames('users').includes('email')) {
+  db.exec("ALTER TABLE users ADD COLUMN email TEXT NOT NULL DEFAULT ''");
+}
+
 // New registrations now require admin approval before they can log in.
 // Critical detail: this ADD COLUMN's DEFAULT is 1 (approved), not 0 -
 // specifically so that everyone who already has an account on an existing

@@ -51,7 +51,7 @@ function updateDisplayName(id, displayName) {
 // instead of everyone sharing whatever was baked into David's original
 // template file.
 const updateProfileStmt = db.prepare(`
-  UPDATE users SET display_name = @display_name, employee_number = @employee_number, department = @department
+  UPDATE users SET display_name = @display_name, employee_number = @employee_number, department = @department, email = @email
   WHERE id = @id
 `);
 
@@ -302,6 +302,7 @@ function logActivity(userId, action, detail) {
 const perUserStatsStmt = db.prepare(`
   SELECT
     u.id, u.username, u.display_name, u.is_admin, u.created_at AS joined_at,
+    u.employee_number, u.department, u.email,
     COUNT(CASE WHEN a.action = 'login' THEN 1 END) AS logins,
     COUNT(CASE WHEN a.action = 'register' THEN 1 END) AS registrations,
     COUNT(CASE WHEN a.action = 'receipt_upload' THEN 1 END) AS uploads,

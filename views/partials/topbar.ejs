@@ -12,7 +12,12 @@
     <button type="button" id="themeToggle" class="secondary theme-toggle" onclick="toggleTheme()">
       <span class="theme-toggle-icon">🌙</span><span class="theme-toggle-label"> Dark</span>
     </button>
-    <a href="/account" class="topbar-username" style="color:inherit; text-decoration:none;"><%= currentUser.display_name %></a>
+    <a href="/account" class="topbar-username" style="color:inherit; text-decoration:none;">
+      <%= currentUser.display_name %>
+      <% if (missingProfileFields && missingProfileFields.length > 0) { %>
+        <span class="badge missing-info" title="Missing: <%= missingProfileFields.map(function(f) { return f.label; }).join(', ') %> (optional but recommended)">!</span>
+      <% } %>
+    </a>
     <form method="POST" action="/logout" style="margin:0;">
       <button type="submit" class="secondary" style="padding:4px 10px;">Log out</button>
     </form>
