@@ -184,6 +184,16 @@ input[type=text], input[type=password], input[type=date], input[type=number], in
 
 textarea { resize: vertical; min-height: 60px; }
 
+select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: var(--card);
+  color: var(--text);
+}
+
 button, .btn {
   display: inline-block;
   padding: 8px 16px;
@@ -249,6 +259,29 @@ button.danger:hover { background: var(--danger-tint); }
 .badge.submitted { background: var(--hint-bg); color: var(--hint-text); }
 .badge.paid { background: var(--success-tint); color: var(--success); }
 .badge.missing-info { background: var(--danger-tint); color: var(--danger); cursor: help; }
+
+.receipts-chart { width: 100%; height: 220px; margin-top: 10px; }
+.receipts-chart svg { width: 100%; height: 100%; overflow: visible; }
+.receipts-chart .bar { fill: var(--primary); }
+.receipts-chart .bar-hit { fill: transparent; }
+.receipts-chart .gridline { stroke: var(--border); stroke-width: 1; }
+.receipts-chart .axis-label { fill: var(--muted); font-size: 10px; }
+
+.chart-tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: var(--text);
+  color: var(--card);
+  padding: 4px 9px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 50;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+.chart-tooltip.visible { opacity: 1; }
 
 .receipt-table { width: 100%; border-collapse: collapse; }
 .receipt-table th, .receipt-table td {

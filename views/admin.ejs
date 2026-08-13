@@ -28,6 +28,18 @@
     </div>
 
     <div class="card">
+      <div class="actions-row" style="justify-content:space-between; margin-top:0;">
+        <h2 style="margin:0;">Receipts over time</h2>
+        <select id="receiptsChartRange">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="365">Last year</option>
+        </select>
+      </div>
+      <div id="receiptsChart" class="receipts-chart" aria-label="Receipts uploaded over time"></div>
+    </div>
+
+    <div class="card">
       <h2 style="margin-top:0;">Usage overview</h2>
       <div class="stat-grid">
         <div class="stat-box">
@@ -181,5 +193,6 @@
   </div>
   <%- include('partials/footer') %>
   <script src="/js/theme.js"></script>
+  <script src="/js/receiptsChart.js"></script>
 </body>
 </html>

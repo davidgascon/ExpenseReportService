@@ -342,6 +342,32 @@ function getActivityActionCounts() {
   return activityCountsStmt.all();
 }
 
+// ---------- Admin: receipts-over-time chart ----------
+
+const receiptCountsByDayStmt = db.prepare(`
+  SELECT date(created_at) AS bucket, COUNT(*) AS n
+  FROM receipts
+  WHERE created_at >= datetime('now', ?)
+  GROUP BY bucket
+`);
+
+const receiptCountsByMonthStmt = db.prepare(`
+  SELECT strftime('%Y-%m', created_at) AS bucket, COUNT(*) AS n
+  FROM receipts
+  WHERE created_at >= datetime('now', ?)
+  GROUP BY bucket
+`);
+
+// Returns sparse {bucket, n} rows for receipts created in the last
+// `rangeDays` days, bucketed by day or by month - GROUP BY only ever
+// returns buckets that actually have rows, so the caller fills in the
+// zero-count gaps (e.g. days with no uploads) itself.
+function getReceiptCountsSince(rangeDays, granularity) {
+  const modifier = `-${rangeDays} days`;
+  const stmt = granularity === 'month' ? receiptCountsByMonthStmt : receiptCountsByDayStmt;
+  return stmt.all(modifier);
+}
+
 const totalsStmt = {
   users: db.prepare('SELECT COUNT(*) AS n FROM users'),
   reports: db.prepare(`
@@ -422,4 +448,5 @@ module.exports = {
   getOverallTotals,
   getBroadcastMessage,
   setBroadcastMessage,
+  getReceiptCountsSince,
 };
