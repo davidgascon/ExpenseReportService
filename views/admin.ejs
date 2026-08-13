@@ -108,8 +108,14 @@
             </thead>
             <tbody>
               <% userStats.forEach(function(u) { %>
+                <% var missing = getMissingProfileFields(u); %>
                 <tr>
-                  <td><%= u.display_name %> <span class="muted small">(<%= u.username %>)</span></td>
+                  <td>
+                    <%= u.display_name %> <span class="muted small">(<%= u.username %>)</span>
+                    <% if (missing.length > 0) { %>
+                      <span class="badge missing-info" title="Missing: <%= missing.map(function(f) { return f.label; }).join(', ') %> (optional but recommended)">!</span>
+                    <% } %>
+                  </td>
                   <td><% if (u.is_admin) { %><span class="badge submitted">admin</span><% } else { %><span class="muted">user</span><% } %></td>
                   <td><%= u.logins %></td>
                   <td><%= u.uploads %></td>

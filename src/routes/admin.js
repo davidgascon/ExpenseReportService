@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const models = require('../db/models');
+const { getMissingProfileFields } = require('../profileFields');
 
 const router = express.Router();
 
@@ -10,7 +11,15 @@ router.get('/', (req, res) => {
   const recentActivity = models.listRecentActivity(100);
   const actionCounts = models.getActivityActionCounts();
   const pendingUsers = models.listPendingUsers();
-  res.render('admin', { totals, userStats, recentActivity, actionCounts, pendingUsers, resetSuccessFor: req.query.reset || null });
+  res.render('admin', {
+    totals,
+    userStats,
+    recentActivity,
+    actionCounts,
+    pendingUsers,
+    resetSuccessFor: req.query.reset || null,
+    getMissingProfileFields,
+  });
 });
 
 // New registrations need an admin to approve them before they can log in.

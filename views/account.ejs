@@ -16,6 +16,13 @@
 
     <div class="card">
       <h2 style="margin-top:0;">Your info</h2>
+      <% if (missingProfileFields && missingProfileFields.length > 0) { %>
+        <div class="ocr-hint">
+          <span class="badge missing-info">Missing info</span>
+          These fields are optional but recommended:
+          <%= missingProfileFields.map(function(f) { return f.label + ' (' + f.hint + ')'; }).join(', ') %>.
+        </div>
+      <% } %>
       <form method="POST" action="/account/profile">
         <label for="display_name">Display name</label>
         <input type="text" id="display_name" name="display_name" value="<%= currentUser.display_name %>" required>
@@ -26,6 +33,9 @@
 
         <label for="department">Department <span class="field-hint" style="display:inline;">(used on the exported spreadsheet)</span></label>
         <input type="text" id="department" name="department" value="<%= currentUser.department || '' %>" placeholder="e.g. 86 - Controls Specialist">
+
+        <label for="email">Email <span class="field-hint" style="display:inline;">(optional — to receive receipt upload confirmations)</span></label>
+        <input type="email" id="email" name="email" value="<%= currentUser.email || '' %>" placeholder="e.g. you@example.com">
 
         <div class="actions-row">
           <button type="submit">Save Info</button>

@@ -22,6 +22,7 @@ try {
 }
 const models = require('../db/models');
 const ocr = require('../ocr');
+const mailer = require('../mailer');
 const { UPLOAD_ROOT } = require('../config');
 const { sniff, EXT_FOR_TYPE, CONTENT_TYPE_FOR_TYPE } = require('../fileSniff');
 const convertHeic = require('heic-convert');
@@ -186,6 +187,7 @@ router.post('/scan', (req, res) => {
     // rest of a multi-file upload should still go through, with a clear
     // message about which one(s) got rejected and why.
     const rejections = [];
+    const uploadedForEmail = [];
 
     for (const file of req.files) {
       const uploadedPath = path.join(userUploadDir(req.user.id), file.filename);
@@ -226,9 +228,18 @@ router.post('/scan', (req, res) => {
 
       models.logActivity(req.user.id, 'receipt_upload', file.originalname);
 
+      uploadedForEmail.push({ originalname: file.originalname, path: verified.filePath });
+
       if (isImage) {
         runOcrInBackground(receipt.id, verified.filePath); // not awaited — fires and returns
       }
+    }
+
+    // Fire-and-forget, same as the background OCR job above — email sending
+    // never holds up the upload response, and happens at upload time rather
+    // than waiting on OCR to finish.
+    if (uploadedForEmail.length) {
+      mailer.sendReceiptConfirmation(req.user, uploadedForEmail);
     }
 
     if (rejections.length) {
