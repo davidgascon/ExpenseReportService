@@ -1,3 +1,8 @@
 <footer class="site-footer">
-  <p>programmed by your favorite controls specialist</p>
+  <p>
+    programmed by your favorite controls specialist
+    <% if (typeof appVersion !== 'undefined') { %>
+      — <a href="/changelog">v<%= appVersion %></a>
+    <% } %>
+  </p>
 </footer>

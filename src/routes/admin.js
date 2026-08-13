@@ -22,6 +22,15 @@ router.get('/', (req, res) => {
   });
 });
 
+// Site-wide banner shown to everyone (see server.js, which looks this up on
+// every request). Blank clears/hides it.
+router.post('/broadcast', (req, res) => {
+  const message = (req.body.message || '').trim();
+  models.setBroadcastMessage(message);
+  models.logActivity(req.user.id, 'broadcast_updated', message ? message.slice(0, 80) : '(cleared)');
+  res.redirect('/admin');
+});
+
 // New registrations need an admin to approve them before they can log in.
 router.post('/users/:id/approve', (req, res) => {
   const targetUser = models.getUserById(Number(req.params.id));

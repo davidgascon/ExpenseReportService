@@ -24,6 +24,7 @@ const reportsRoutes = require('./src/routes/reports');
 const receiptsRoutes = require('./src/routes/receipts');
 const adminRoutes = require('./src/routes/admin');
 const ocr = require('./src/ocr');
+const { CHANGELOG } = require('./src/changelog');
 
 const SqliteStore = require('better-sqlite3-session-store')(session);
 
@@ -63,7 +64,20 @@ app.use(session({
 
 app.use(attachUser(models));
 
+// The admin's site-wide banner (see /admin) is looked up on every request,
+// logged-in or not, so it can be shown above the login/register pages too -
+// not just inside the app itself. appVersion rides along here too so the
+// footer (included on every page) can show it without every route passing
+// it explicitly.
+app.use((req, res, next) => {
+  res.locals.broadcastMessage = models.getBroadcastMessage();
+  res.locals.appVersion = CHANGELOG[0].version;
+  next();
+});
+
 app.get('/', requireAuth, (req, res) => res.redirect('/reports'));
+
+app.get('/changelog', (req, res) => res.render('changelog', { changelog: CHANGELOG }));
 
 app.use('/', authRoutes);
 app.use('/account', requireAuth, accountRoutes);

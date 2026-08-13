@@ -69,6 +69,17 @@ body {
 body > .container { flex: 1; width: 100%; }
 body > .auth-container { flex: 1; }
 
+.broadcast-banner {
+  background: var(--hint-bg);
+  color: var(--hint-text);
+  border-bottom: 1px solid var(--hint-border);
+  padding: 10px 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: pre-wrap;
+}
+
 .topbar {
   display: flex;
   align-items: center;

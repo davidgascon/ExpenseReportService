@@ -9,6 +9,7 @@
   <% if (recaptchaSiteKey) { %><script src="https://www.google.com/recaptcha/api.js" async defer></script><% } %>
 </head>
 <body>
+  <%- include('partials/broadcast-banner') %>
   <div class="auth-container">
     <h1>Create your account</h1>
     <% if (error) { %><div class="error-banner"><%= error %></div><% } %>

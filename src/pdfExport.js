@@ -35,13 +35,16 @@ function newPage(pdfDoc) {
   return pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 }
 
+// Returns an array — a multi-page PDF receipt yields one embed per page
+// (previously only page 0 was ever embedded, silently dropping the rest of
+// the pages), while an image receipt always yields exactly one.
 async function embedReceiptFile(pdfDoc, filePath) {
   const ext = path.extname(filePath).toLowerCase();
   const bytes = fs.readFileSync(filePath);
   if (ext === '.pdf') {
     const srcDoc = await PDFDocument.load(bytes);
-    const [embedded] = await pdfDoc.embedPdf(srcDoc, [0]);
-    return { kind: 'page', embedded, width: embedded.width, height: embedded.height };
+    const embeddedPages = await pdfDoc.embedPdf(srcDoc, srcDoc.getPageIndices());
+    return embeddedPages.map((embedded) => ({ kind: 'page', embedded, width: embedded.width, height: embedded.height }));
   }
   // Recompress before embedding - a report full of full-resolution phone
   // photos otherwise made for a huge PDF. This only affects the copy going
@@ -50,7 +53,24 @@ async function embedReceiptFile(pdfDoc, filePath) {
   // doesn't actually shrink this particular file - see imageCompress.js.
   const { buffer: compressedBytes, ext: compressedExt } = await compressForExport(bytes, ext);
   const image = compressedExt === '.png' ? await pdfDoc.embedPng(compressedBytes) : await pdfDoc.embedJpg(compressedBytes);
-  return { kind: 'image', embedded: image, width: image.width, height: image.height };
+  return [{ kind: 'image', embedded: image, width: image.width, height: image.height }];
+}
+
+// Scales an embed to fit within the space above `bottomMargin` up to `topY`,
+// centered horizontally, and draws it onto `page`.
+function drawEmbedCentered(page, embed, topY, bottomMargin) {
+  const availableWidth = PAGE_WIDTH - MARGIN * 2;
+  const availableHeight = topY - bottomMargin;
+  const scale = Math.min(availableWidth / embed.width, availableHeight / embed.height, 1);
+  const w = embed.width * scale;
+  const h = embed.height * scale;
+  const x = MARGIN + (availableWidth - w) / 2;
+  const y = topY - h;
+  if (embed.kind === 'page') {
+    page.drawPage(embed.embedded, { x, y, width: w, height: h });
+  } else {
+    page.drawImage(embed.embedded, { x, y, width: w, height: h });
+  }
 }
 
 /**
@@ -101,18 +121,15 @@ async function buildReportPdf(report, receipts, uploadDirFor, excelPdfBytes) {
 
     try {
       const filePath = path.join(uploadDirFor(r.user_id), r.filename);
-      const embed = await embedReceiptFile(pdfDoc, filePath);
-      const availableWidth = PAGE_WIDTH - MARGIN * 2;
-      const availableHeight = hy - MARGIN;
-      const scale = Math.min(availableWidth / embed.width, availableHeight / embed.height, 1);
-      const w = embed.width * scale;
-      const h = embed.height * scale;
-      const x = MARGIN + (availableWidth - w) / 2;
-      const imgY = hy - h;
-      if (embed.kind === 'page') {
-        rPage.drawPage(embed.embedded, { x, y: imgY, width: w, height: h });
-      } else {
-        rPage.drawImage(embed.embedded, { x, y: imgY, width: w, height: h });
+      const [firstEmbed, ...restEmbeds] = await embedReceiptFile(pdfDoc, filePath);
+      drawEmbedCentered(rPage, firstEmbed, hy, MARGIN);
+
+      // A multi-page PDF receipt gets one full page per additional page,
+      // right after this receipt's own page - previously only the first
+      // page of the source PDF was ever included in the export.
+      for (const embed of restEmbeds) {
+        const extraPage = newPage(pdfDoc);
+        drawEmbedCentered(extraPage, embed, PAGE_HEIGHT - MARGIN, MARGIN);
       }
     } catch (e) {
       rPage.drawText('(Could not load the original receipt file)', { x: MARGIN, y: hy - 20, size: 10, font: regular, color: GRAY });

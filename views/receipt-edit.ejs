@@ -18,7 +18,7 @@
       <% } %>
 
       <div class="actions-row" style="margin-bottom:14px;">
-        <a class="file-link" href="/receipts/<%= receipt.id %>/file" target="_blank">View original file</a>
+        <a class="file-link js-view-file" href="/receipts/<%= receipt.id %>/file" data-file-name="<%= receipt.original_name || 'Receipt' %>" data-file-type="<%= /\.(jpe?g|png|gif|webp|bmp)$/i.test(receipt.original_name || '') ? 'image' : 'pdf' %>" target="_blank">View original file</a>
       </div>
 
       <form method="POST" action="/receipts/<%= receipt.id %>/edit">
@@ -39,9 +39,6 @@
         <label for="description">Description <span class="field-hint" style="display:inline;">(this is what gets put on the exported spreadsheet)</span></label>
         <input type="text" id="description" name="description" value="<%= receipt.description || '' %>" placeholder="Project Lunch: (list who attended)">
 
-        <label for="attendees">Who attended <span class="field-hint" style="display:inline;">(optional)</span></label>
-        <input type="text" id="attendees" name="attendees" value="<%= receipt.attendees || '' %>" placeholder="e.g. David Gascon, Jane Doe">
-
         <label for="notes">Notes</label>
         <textarea id="notes" name="notes" placeholder="Purpose of the expense, client name, etc."><%= receipt.notes || '' %></textarea>
 
@@ -54,5 +51,6 @@
   </div>
   <%- include('partials/footer') %>
   <script src="/js/theme.js"></script>
+  <script src="/js/filePreview.js"></script>
 </body>
 </html>

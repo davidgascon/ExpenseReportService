@@ -45,7 +45,6 @@
               <th>Date</th>
               <th>Project</th>
               <th>GL Code</th>
-              <th>Attendees</th>
               <th>Description</th>
               <th>Receipt</th>
               <th class="amount">Total</th>
@@ -56,7 +55,7 @@
             <% receipts.forEach(function(r) { %>
               <% if (r.ocr_status === 'pending') { %>
                 <tr>
-                  <td colspan="7">
+                  <td colspan="6">
                     <span class="spinner" aria-hidden="true"></span>
                     Scanning receipt… (usually takes a minute or two)
                     — <a class="file-link" href="/receipts/<%= r.id %>/edit">fill in details now instead</a>
@@ -72,7 +71,6 @@
                   <td><%= r.receipt_date || '—' %></td>
                   <td><%= r.project_name || '—' %></td>
                   <td><%= r.gl_code || '—' %></td>
-                  <td><%= r.attendees || '—' %></td>
                   <td><%= r.description || '—' %></td>
                   <td><a class="file-link js-view-file" href="/receipts/<%= r.id %>/file" data-file-name="<%= r.original_name || 'Receipt' %>" data-file-type="<%= /\.(jpe?g|png|gif|webp|bmp)$/i.test(r.original_name || '') ? 'image' : 'pdf' %>" target="_blank">View file</a></td>
                   <td class="amount">$<%= r.total.toFixed(2) %></td>

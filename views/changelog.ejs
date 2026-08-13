@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Expense Reports</title>
+  <title>Changelog — Expense Reports</title>
   <%- include('partials/theme-init') %>
   <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -15,8 +15,19 @@
   <% } %>
   <div class="container">
     <div class="card">
-      <p><%= message %></p>
-      <a href="/reports" class="btn secondary">Back to reports</a>
+      <h2 style="margin-top:0;">Changelog</h2>
+      <% changelog.forEach(function(entry) { %>
+        <div style="margin-bottom:18px;">
+          <h3 style="margin-bottom:4px;">
+            v<%= entry.version %> <span class="muted small" style="font-weight:400;"><%= entry.date %></span>
+          </h3>
+          <ul style="margin-top:4px;">
+            <% entry.highlights.forEach(function(h) { %>
+              <li><%= h %></li>
+            <% }); %>
+          </ul>
+        </div>
+      <% }); %>
     </div>
   </div>
   <%- include('partials/footer') %>

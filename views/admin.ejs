@@ -13,6 +13,20 @@
     <% if (resetSuccessFor) { %>
       <div class="ocr-hint">Password reset for <%= resetSuccessFor %>.</div>
     <% } %>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Site-wide message</h2>
+      <p class="small muted" style="margin-top:-6px;">
+        Shown in a banner at the top of the app for everyone, logged in or not. Leave it blank to hide it.
+      </p>
+      <form method="POST" action="/admin/broadcast">
+        <textarea name="message" rows="2" placeholder="e.g. Scheduled maintenance Friday 6-7am — the app will be briefly unavailable."><%= broadcastMessage %></textarea>
+        <div class="actions-row">
+          <button type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+
     <div class="card">
       <h2 style="margin-top:0;">Usage overview</h2>
       <div class="stat-grid">

@@ -220,7 +220,6 @@ router.post('/scan', (req, res) => {
         total: 0,
         project_name: '',
         gl_code: '',
-        attendees: '',
         notes: '',
         ocr_raw_text: null,
         ocr_status: isImage ? 'pending' : 'done',
@@ -301,7 +300,7 @@ router.post('/:id/edit', (req, res) => {
     return res.status(400).render('error', { message: 'This receipt belongs to a submitted report and can no longer be edited. Reopen the report first.' });
   }
 
-  const { receipt_date, total, project_name, gl_code, attendees, notes, description } = req.body;
+  const { receipt_date, total, project_name, gl_code, notes, description } = req.body;
   const parsedTotal = parseFloat(total);
   if (Number.isNaN(parsedTotal) || parsedTotal < 0) {
     return res.status(400).render('receipt-edit', { receipt, error: 'Please enter a valid total amount.', returnTo: req.body.return_to === 'report' ? 'report' : 'inbox' });
@@ -313,7 +312,6 @@ router.post('/:id/edit', (req, res) => {
     total: parsedTotal,
     project_name: (project_name || '').trim(),
     gl_code: (gl_code || '').trim(),
-    attendees: (attendees || '').trim(),
     notes: (notes || '').trim(),
     description: (description || '').trim(),
   });

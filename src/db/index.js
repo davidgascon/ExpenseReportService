@@ -53,7 +53,6 @@ db.exec(`
     total REAL NOT NULL DEFAULT 0,
     project_name TEXT NOT NULL DEFAULT '',
     gl_code TEXT NOT NULL DEFAULT '',
-    attendees TEXT NOT NULL DEFAULT '',
     notes TEXT NOT NULL DEFAULT '',
     description TEXT NOT NULL DEFAULT 'Project Lunch: ',
     ocr_raw_text TEXT,
@@ -77,6 +76,16 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_activity_log_user_id ON activity_log(user_id);
   CREATE INDEX IF NOT EXISTS idx_activity_log_created_at ON activity_log(created_at);
+
+  -- Single-row table for the admin's site-wide banner message. A blank
+  -- message means the banner is hidden; there's only ever one row (id is
+  -- pinned to 1 via the CHECK) since there's only one message at a time.
+  CREATE TABLE IF NOT EXISTS broadcast_message (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    message TEXT NOT NULL DEFAULT '',
+    updated_at TEXT
+  );
+  INSERT OR IGNORE INTO broadcast_message (id, message) VALUES (1, '');
 `);
 
 // ---------- Lightweight migrations ----------
@@ -112,6 +121,14 @@ if (!columnNames('receipts').includes('description')) {
 // has the old default text untouched - if someone already customized
 // their description, it won't match this exact string and is left alone.
 db.prepare("UPDATE receipts SET description = 'Project Lunch: ' WHERE description = 'Project Lunch: (list who attended)'").run();
+
+// The separate "Attendees" field was dropped per explicit request - who
+// attended now just goes in the free-form Description field instead. SQLite
+// has supported DROP COLUMN since 3.35 (bundled well within better-sqlite3's
+// range), so this is a straight drop rather than a full table rebuild.
+if (columnNames('receipts').includes('attendees')) {
+  db.exec('ALTER TABLE receipts DROP COLUMN attendees');
+}
 
 // Employee # and Department are now per-user, editable fields (used to
 // populate the exported spreadsheet's header) rather than left as

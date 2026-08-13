@@ -25,8 +25,8 @@ page per receipt) and "submitted" (locked) when you're done.
   changes (and can be reopened if you need to fix something). Deleting a
   report doesn't delete its receipts — they just go back to your inbox
 - **Export to PDF:** one click produces a PDF with a summary table of every
-  receipt in the report, followed by one page per receipt (its date, total,
-  project, attendees, notes, and the original receipt image/PDF)
+  receipt in the report, followed by one page per receipt (its total, notes,
+  and the original receipt image/PDF — every page of a multi-page PDF)
 - Light/dark mode toggle (remembers your preference)
 - Runs fully offline — OCR uses a bundled language model, no external API
   keys or cloud services required

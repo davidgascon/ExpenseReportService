@@ -198,8 +198,8 @@ function deleteReport(id) {
 const DEFAULT_DESCRIPTION = 'Project Lunch: ';
 
 const insertReceiptStmt = db.prepare(`
-  INSERT INTO receipts (user_id, report_id, filename, original_name, receipt_date, total, project_name, gl_code, attendees, notes, description, ocr_raw_text, ocr_status)
-  VALUES (@user_id, @report_id, @filename, @original_name, @receipt_date, @total, @project_name, @gl_code, @attendees, @notes, @description, @ocr_raw_text, @ocr_status)
+  INSERT INTO receipts (user_id, report_id, filename, original_name, receipt_date, total, project_name, gl_code, notes, description, ocr_raw_text, ocr_status)
+  VALUES (@user_id, @report_id, @filename, @original_name, @receipt_date, @total, @project_name, @gl_code, @notes, @description, @ocr_raw_text, @ocr_status)
 `);
 
 function createReceipt(data) {
@@ -230,7 +230,7 @@ function listUnassignedReceiptsForUser(userId) {
 }
 
 const updateReceiptStmt = db.prepare(`
-  UPDATE receipts SET receipt_date = @receipt_date, total = @total, project_name = @project_name, gl_code = @gl_code, attendees = @attendees, notes = @notes, description = @description
+  UPDATE receipts SET receipt_date = @receipt_date, total = @total, project_name = @project_name, gl_code = @gl_code, notes = @notes, description = @description
   WHERE id = @id
 `);
 
@@ -366,6 +366,23 @@ function getOverallTotals() {
   };
 }
 
+// ---------- Site-wide broadcast banner ----------
+
+const getBroadcastMessageStmt = db.prepare('SELECT message FROM broadcast_message WHERE id = 1');
+
+function getBroadcastMessage() {
+  const row = getBroadcastMessageStmt.get();
+  return row ? row.message : '';
+}
+
+const setBroadcastMessageStmt = db.prepare(
+  "UPDATE broadcast_message SET message = ?, updated_at = datetime('now') WHERE id = 1",
+);
+
+function setBroadcastMessage(message) {
+  return setBroadcastMessageStmt.run(message);
+}
+
 module.exports = {
   insertUser,
   findUserByUsername,
@@ -403,4 +420,6 @@ module.exports = {
   listRecentActivity,
   getActivityActionCounts,
   getOverallTotals,
+  getBroadcastMessage,
+  setBroadcastMessage,
 };
