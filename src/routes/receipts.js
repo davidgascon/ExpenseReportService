@@ -138,9 +138,14 @@ async function normalizeImageOrientation(filePath) {
   fs.writeFileSync(filePath, rotated);
 }
 
+// Egg: a 1-in-20 chance of a different empty-state line instead of the
+// standard one, when the inbox happens to be empty.
+const RARE_EMPTY_STATE_MESSAGE = 'Nothing here. Somewhere, a filing cabinet weeps with joy.';
+
 function renderInbox(req, res, extra) {
   const receipts = models.listUnassignedReceiptsForUser(req.user.id);
-  res.render('inbox', { receipts, error: null, success: null, ...extra });
+  const emptyStateMessage = Math.random() < 0.05 ? RARE_EMPTY_STATE_MESSAGE : 'Nothing in your inbox right now.';
+  res.render('inbox', { receipts, error: null, success: null, emptyStateMessage, ...extra });
 }
 
 // Runs in the background (not awaited by the request) so a slow OCR pass

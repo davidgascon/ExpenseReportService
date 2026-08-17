@@ -5,6 +5,21 @@ const { getMissingProfileFields } = require('../profileFields');
 
 const router = express.Router();
 
+// Metrics offered on the admin activity chart - each key is an
+// activity_log action (see models.logActivity call sites), so adding a new
+// chartable metric later is just adding an entry here.
+const CHART_METRICS = [
+  { key: 'receipt_upload', label: 'Receipts uploaded' },
+  { key: 'login', label: 'Logins' },
+  { key: 'register', label: 'Registrations' },
+  { key: 'receipt_attach', label: 'Receipts attached to a report' },
+  { key: 'report_created', label: 'Reports created' },
+  { key: 'report_submitted', label: 'Reports submitted' },
+  { key: 'report_paid', label: 'Reports paid' },
+  { key: 'report_exported', label: 'Reports exported' },
+];
+const CHART_METRIC_KEYS = CHART_METRICS.map((m) => m.key);
+
 router.get('/', (req, res) => {
   const totals = models.getOverallTotals();
   const userStats = models.getPerUserActivityStats();
@@ -19,19 +34,21 @@ router.get('/', (req, res) => {
     pendingUsers,
     resetSuccessFor: req.query.reset || null,
     getMissingProfileFields,
+    chartMetrics: CHART_METRICS,
   });
 });
 
 const CHART_RANGES = [7, 30, 365];
 
-// Receipts-over-time chart data, gap-filled so every day/month in range
-// shows up even with zero uploads (the model only returns buckets that
+// Activity-over-time chart data, gap-filled so every day/month in range
+// shows up even with zero activity (the model only returns buckets that
 // actually have rows). Day granularity for 7/30 days, month for the 1-year
 // view - 365 daily bars would be unreadable and rarely more useful.
-router.get('/receipts-chart', (req, res) => {
+router.get('/activity-chart', (req, res) => {
   const range = CHART_RANGES.includes(Number(req.query.range)) ? Number(req.query.range) : 30;
+  const metric = CHART_METRIC_KEYS.includes(req.query.metric) ? req.query.metric : 'receipt_upload';
   const granularity = range === 365 ? 'month' : 'day';
-  const rows = models.getReceiptCountsSince(range, granularity);
+  const rows = models.getActivityCountsSince(metric, range, granularity);
   const countsByBucket = new Map(rows.map((r) => [r.bucket, r.n]));
 
   const labels = [];

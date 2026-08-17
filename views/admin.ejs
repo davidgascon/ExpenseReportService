@@ -28,15 +28,22 @@
     </div>
 
     <div class="card">
-      <div class="actions-row" style="justify-content:space-between; margin-top:0;">
-        <h2 style="margin:0;">Receipts over time</h2>
-        <select id="receiptsChartRange">
-          <option value="7">Last 7 days</option>
-          <option value="30" selected>Last 30 days</option>
-          <option value="365">Last year</option>
-        </select>
+      <div class="actions-row" style="justify-content:space-between; margin-top:0; flex-wrap:wrap;">
+        <h2 style="margin:0;">Activity over time</h2>
+        <div class="actions-row" style="margin-top:0;">
+          <select id="activityChartMetric">
+            <% chartMetrics.forEach(function(m) { %>
+              <option value="<%= m.key %>"><%= m.label %></option>
+            <% }); %>
+          </select>
+          <select id="activityChartRange">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="365">Last year</option>
+          </select>
+        </div>
       </div>
-      <div id="receiptsChart" class="receipts-chart" aria-label="Receipts uploaded over time"></div>
+      <div id="activityChart" class="activity-chart" aria-label="App activity over time"></div>
     </div>
 
     <div class="card">
@@ -193,6 +200,6 @@
   </div>
   <%- include('partials/footer') %>
   <script src="/js/theme.js"></script>
-  <script src="/js/receiptsChart.js"></script>
+  <script src="/js/activityChart.js"></script>
 </body>
 </html>

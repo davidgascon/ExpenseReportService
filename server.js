@@ -40,6 +40,11 @@ if (!SESSION_SECRET) {
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.set('trust proxy', 1);
+app.disable('x-powered-by');
+app.use((req, res, next) => {
+  res.setHeader('X-Powered-By', 'Coffee, Spreadsheets, and Mild Panic');
+  next();
+});
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

@@ -20,14 +20,14 @@
         Receipts land here first — you'll check off the ones you want when you're ready to build a report.
       </p>
       <form id="scanForm" method="POST" action="/receipts/scan" enctype="multipart/form-data">
-        <label for="receipt">Receipt image(s) or PDF(s)</label>
-        <input type="file" id="receipt" name="receipt" accept="image/jpeg,image/png,image/heic,image/heif,application/pdf" multiple required>
+        <label for="receipt" class="visually-hidden">Receipt image(s) or PDF(s)</label>
+        <input type="file" id="receipt" name="receipt" accept="image/jpeg,image/png,image/heic,image/heif,application/pdf" multiple required class="visually-hidden">
+        <div class="actions-row" style="margin-top:0;">
+          <button type="button" id="chooseFilesBtn" class="accent">Choose Files</button>
+        </div>
         <p class="field-hint">iPhone photos (HEIC) are supported — they're automatically converted so they preview correctly everywhere.</p>
         <p class="field-hint">You can select more than one file at once — hold Ctrl/Cmd (or Shift for a range) in the file picker.</p>
-        <div class="actions-row">
-          <button type="submit" id="scanSubmitBtn">Scan Receipt(s)</button>
-        </div>
-        <p class="small muted">We'll scan each one for a date and total in the background — you can keep working while that runs, and fix anything it gets wrong afterward.</p>
+        <p class="small muted">Picking file(s) uploads them right away — we'll scan each one for a date and total in the background, and you can fix anything it gets wrong afterward.</p>
       </form>
     </div>
 
@@ -37,7 +37,7 @@
         These haven't been added to a report yet. Open a draft report and check off the ones you want.
       </p>
       <% if (receipts.length === 0) { %>
-        <div class="empty-state">Nothing in your inbox right now.</div>
+        <div class="empty-state"><%= emptyStateMessage %></div>
       <% } else { %>
         <div class="table-wrap">
         <table class="receipt-table" id="receiptTable" data-has-pending="<%= receipts.some(r => r.ocr_status === 'pending') %>">

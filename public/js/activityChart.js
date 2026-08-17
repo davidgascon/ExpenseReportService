@@ -1,7 +1,8 @@
-// Single-series column chart of receipt uploads over time, on the admin
-// dashboard. Deliberately hand-rolled SVG rather than pulling in a charting
-// library - one series, no legend needed, and this keeps the app dependency-
-// free on the frontend like everything else here.
+// Single-series column chart of app activity over time (receipts, logins,
+// reports, etc.), on the admin dashboard. Deliberately hand-rolled SVG
+// rather than pulling in a charting library - one series at a time, no
+// legend needed, and this keeps the app dependency-free on the frontend
+// like everything else here.
 (function () {
   var SVG_NS = 'http://www.w3.org/2000/svg';
   var VIEW_WIDTH = 800;
@@ -117,7 +118,7 @@
         height: plotHeight,
       });
       hit.addEventListener('mousemove', function (evt) {
-        showTooltip(evt, label + ': ' + count + ' receipt' + (count === 1 ? '' : 's'));
+        showTooltip(evt, label + ': ' + count);
       });
       hit.addEventListener('mouseleave', hideTooltip);
       svg.appendChild(hit);
@@ -132,8 +133,8 @@
     container.appendChild(svg);
   }
 
-  function loadChart(container, range) {
-    fetch('/admin/receipts-chart?range=' + range)
+  function loadChart(container, metric, range) {
+    fetch('/admin/activity-chart?metric=' + encodeURIComponent(metric) + '&range=' + range)
       .then(function (resp) { return resp.json(); })
       .then(function (data) { render(container, data); })
       .catch(function () {
@@ -142,13 +143,17 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    var container = document.getElementById('receiptsChart');
-    var rangeSelect = document.getElementById('receiptsChartRange');
-    if (!container || !rangeSelect) return;
+    var container = document.getElementById('activityChart');
+    var metricSelect = document.getElementById('activityChartMetric');
+    var rangeSelect = document.getElementById('activityChartRange');
+    if (!container || !metricSelect || !rangeSelect) return;
 
-    loadChart(container, rangeSelect.value);
-    rangeSelect.addEventListener('change', function () {
-      loadChart(container, rangeSelect.value);
-    });
+    var reload = function () {
+      loadChart(container, metricSelect.value, rangeSelect.value);
+    };
+
+    reload();
+    metricSelect.addEventListener('change', reload);
+    rangeSelect.addEventListener('change', reload);
   });
 })();

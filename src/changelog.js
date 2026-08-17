@@ -4,6 +4,15 @@
 // shown in the footer, so bump it here whenever a new entry is added.
 const CHANGELOG = [
   {
+    version: '1.1.2',
+    date: '2026-08-16',
+    highlights: [
+      'Admin activity chart can now show logins, reports, exports, etc. - not just receipts',
+      '"Choose Files" is now one clear accent-colored button instead of a plain file picker plus a separate upload button',
+      'A few hidden surprises scattered around the app',
+    ],
+  },
+  {
     version: '1.1.1',
     date: '2026-08-16',
     highlights: [

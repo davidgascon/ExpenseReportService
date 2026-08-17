@@ -7,27 +7,42 @@ function showLoadingOverlay(message) {
 
 document.addEventListener('DOMContentLoaded', function () {
   var form = document.getElementById('scanForm');
-  var submitBtn = document.getElementById('scanSubmitBtn');
+  var fileInput = document.getElementById('receipt');
+  var chooseBtn = document.getElementById('chooseFilesBtn');
+
   if (form) {
     form.addEventListener('submit', function () {
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Uploading…';
+      if (chooseBtn) {
+        chooseBtn.disabled = true;
+        chooseBtn.textContent = 'Uploading…';
       }
       showLoadingOverlay('Uploading receipt and starting the scan…');
     });
   }
 
+  // The visible "Choose Files" button just opens the native file picker
+  // (the real <input type=file> is visually hidden - native file inputs
+  // can't be restyled consistently across browsers, so a real button
+  // triggering it gives one clean, on-brand control instead).
+  if (chooseBtn && fileInput) {
+    chooseBtn.addEventListener('click', function () {
+      fileInput.click();
+    });
+  }
+
   // Picking file(s) is already the deliberate action here (there's nothing
-  // else to fill in first) — submit right away instead of making the user
-  // also click "Scan Receipt(s)" as a separate step. Clicking the button
-  // programmatically (rather than form.submit()) keeps the browser's native
-  // required-field validation and the submit listener above both in play.
-  var fileInput = document.getElementById('receipt');
-  if (fileInput && submitBtn) {
+  // else to fill in first) - submit right away instead of requiring a
+  // separate click on a submit button. requestSubmit() (not submit())
+  // still fires the 'submit' listener above, so the loading overlay and
+  // native required-field validation both still run.
+  if (fileInput && form) {
     fileInput.addEventListener('change', function () {
       if (fileInput.files && fileInput.files.length > 0) {
-        submitBtn.click();
+        if (form.requestSubmit) {
+          form.requestSubmit();
+        } else {
+          form.submit();
+        }
       }
     });
   }

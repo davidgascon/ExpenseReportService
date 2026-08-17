@@ -342,30 +342,34 @@ function getActivityActionCounts() {
   return activityCountsStmt.all();
 }
 
-// ---------- Admin: receipts-over-time chart ----------
+// ---------- Admin: activity-over-time chart ----------
+// Sources every metric (receipts uploaded, logins, reports created, etc.)
+// from activity_log rather than each table separately - every action the
+// chart offers already gets logged there via models.logActivity, so one
+// pair of queries covers all of them.
 
-const receiptCountsByDayStmt = db.prepare(`
+const activityCountsByDayStmt = db.prepare(`
   SELECT date(created_at) AS bucket, COUNT(*) AS n
-  FROM receipts
-  WHERE created_at >= datetime('now', ?)
+  FROM activity_log
+  WHERE action = ? AND created_at >= datetime('now', ?)
   GROUP BY bucket
 `);
 
-const receiptCountsByMonthStmt = db.prepare(`
+const activityCountsByMonthStmt = db.prepare(`
   SELECT strftime('%Y-%m', created_at) AS bucket, COUNT(*) AS n
-  FROM receipts
-  WHERE created_at >= datetime('now', ?)
+  FROM activity_log
+  WHERE action = ? AND created_at >= datetime('now', ?)
   GROUP BY bucket
 `);
 
-// Returns sparse {bucket, n} rows for receipts created in the last
+// Returns sparse {bucket, n} rows for the given action in the last
 // `rangeDays` days, bucketed by day or by month - GROUP BY only ever
 // returns buckets that actually have rows, so the caller fills in the
-// zero-count gaps (e.g. days with no uploads) itself.
-function getReceiptCountsSince(rangeDays, granularity) {
+// zero-count gaps (e.g. days with no activity) itself.
+function getActivityCountsSince(action, rangeDays, granularity) {
   const modifier = `-${rangeDays} days`;
-  const stmt = granularity === 'month' ? receiptCountsByMonthStmt : receiptCountsByDayStmt;
-  return stmt.all(modifier);
+  const stmt = granularity === 'month' ? activityCountsByMonthStmt : activityCountsByDayStmt;
+  return stmt.all(action, modifier);
 }
 
 const totalsStmt = {
@@ -448,5 +452,5 @@ module.exports = {
   getOverallTotals,
   getBroadcastMessage,
   setBroadcastMessage,
-  getReceiptCountsSince,
+  getActivityCountsSince,
 };
