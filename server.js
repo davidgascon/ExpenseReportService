@@ -92,9 +92,17 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/', requireAuth, (req, res) => res.redirect('/reports'));
+// Logged-in visitors go straight to their reports; a brand-new, logged-out
+// visitor previously got redirected straight to /login with zero context -
+// this gives them a plain-language explanation of what the app is and a
+// clear "Create an account" call to action instead.
+app.get('/', (req, res) => {
+  if (req.session && req.session.userId) return res.redirect('/reports');
+  res.render('welcome');
+});
 
 app.get('/changelog', (req, res) => res.render('changelog', { changelog: CHANGELOG }));
+app.get('/help', requireAuth, (req, res) => res.render('help'));
 
 app.use('/', authRoutes);
 app.use('/account', requireAuth, accountRoutes);

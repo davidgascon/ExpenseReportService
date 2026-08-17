@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Reports</title>
+  <%- include('partials/theme-init') %>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/broadcast-banner') %>
+  <%- include('partials/update-banner') %>
+  <div class="container" style="max-width:640px;">
+    <div class="card" style="text-align:center; padding:40px 32px;">
+      <h1 style="margin-top:0;">📋 Expense Reports</h1>
+      <p class="muted" style="font-size:1.05rem; line-height:1.5;">
+        Upload your receipts, fill in a few details, and build an expense report —
+        all in one place, without emailing spreadsheets back and forth.
+      </p>
+      <div class="actions-row" style="justify-content:center; margin-top:28px;">
+        <a href="/register" class="btn full-width large">Create an account</a>
+      </div>
+      <p class="small muted" style="margin-top:16px;">
+        Already have an account? <a href="/login">Log in</a>.
+      </p>
+    </div>
+  </div>
+  <%- include('partials/footer') %>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help — Expense Reports</title>
+  <%- include('partials/theme-init') %>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/topbar') %>
+  <div class="container">
+
+    <div class="card">
+      <h2 style="margin-top:0;">How this works</h2>
+      <p>
+        This app tracks your work expenses from receipt to reimbursement: upload a receipt,
+        fill in a few details, group receipts into a report, and submit it when you're ready.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">1. Upload a receipt</h2>
+      <p>
+        Go to <a href="/receipts">Receipt Inbox</a> and choose a photo or PDF of your receipt — you can
+        select several at once. Each one lands in your personal inbox and gets scanned automatically
+        in the background to guess the date and total, so you usually don't have to type those in
+        yourself. iPhone photos (HEIC) work fine; they're converted automatically.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">2. Fill in the details</h2>
+      <p>
+        Open a receipt from your inbox and check that the date and total look right (fix them if the
+        scan got something wrong). Add the <strong>GL code</strong> and a <strong>description</strong> —
+        both of these are what actually show up on the exported spreadsheet, so it's worth getting them
+        right. Project name and notes are just for your own reference.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">3. Build a report</h2>
+      <p>
+        From <a href="/reports">My Reports</a>, start a new report (or open an existing draft), then
+        check off the receipts from your inbox you want to include and add them. A report stays a
+        <strong>draft</strong> — freely editable — until you submit it.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">4. Submit and get reimbursed</h2>
+      <p>
+        Once a report has everything it needs, hit <strong>Submit</strong>. That locks it from further
+        editing (you can always reopen it if you need to fix something). From the report page you can
+        export it as an Excel spreadsheet or a PDF to hand off for reimbursement. Once you've actually
+        been paid back, mark the report <strong>Paid</strong> to keep your records straight.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Your account</h2>
+      <p>
+        On the <a href="/account">Account</a> page, fill in your Employee # and Department — these feed
+        the header of the exported spreadsheet, so it's worth setting them once up front. New accounts
+        need an admin to approve them before they can log in.
+      </p>
+    </div>
+
+  </div>
+  <%- include('partials/footer') %>
+  <script src="/js/theme.js"></script>
+</body>
+</html>

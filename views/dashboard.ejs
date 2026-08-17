@@ -10,6 +10,10 @@
 <body>
   <%- include('partials/topbar') %>
   <div class="container">
+    <% if (reports.length === 0) { %>
+      <div class="ocr-hint">New here? <a href="/help">See how this app works</a> before you get started.</div>
+    <% } %>
+
     <div class="card">
       <h2 style="margin-top:0;">At a glance</h2>
       <div class="stat-grid">

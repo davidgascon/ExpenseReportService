@@ -4,6 +4,15 @@
 // shown in the footer, so bump it here whenever a new entry is added.
 const CHANGELOG = [
   {
+    version: '1.1.3',
+    date: '2026-08-17',
+    highlights: [
+      'Logged-out visitors now land on a plain-language welcome page (what this app is, plus a "Create an account" button) instead of getting bounced straight to the login form',
+      'Added a Help page walking through the whole workflow, linked from the top nav',
+      'Brand-new users (no reports yet) get a pointer to it on their dashboard',
+    ],
+  },
+  {
     version: '1.1.2',
     date: '2026-08-16',
     highlights: [

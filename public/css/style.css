@@ -259,6 +259,7 @@ button.accent:hover, .btn.accent:hover { filter: brightness(1.08); }
 }
 
 .full-width { width: 100%; }
+.btn.large { font-size: 1.1rem; padding: 14px 24px; }
 
 .error-banner {
   background: var(--error-bg);
