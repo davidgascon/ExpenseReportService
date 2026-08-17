@@ -64,14 +64,26 @@ app.use(session({
 
 app.use(attachUser(models));
 
+const RECENT_RELEASE_DAYS = 3;
+
+// Whether the latest changelog entry shipped within the last few days - true
+// only in [0, RECENT_RELEASE_DAYS] so a future-dated entry (typo, or a
+// changelog written ahead of the actual deploy) doesn't count as "recent."
+function isRecentRelease(dateStr) {
+  const releasedAt = new Date(`${dateStr}T00:00:00Z`);
+  const daysSince = (Date.now() - releasedAt.getTime()) / (1000 * 60 * 60 * 24);
+  return daysSince >= 0 && daysSince <= RECENT_RELEASE_DAYS;
+}
+
 // The admin's site-wide banner (see /admin) is looked up on every request,
 // logged-in or not, so it can be shown above the login/register pages too -
-// not just inside the app itself. appVersion rides along here too so the
-// footer (included on every page) can show it without every route passing
-// it explicitly.
+// not just inside the app itself. appVersion/recentRelease ride along here
+// too so the footer/banners (included on every page) can use them without
+// every route passing them explicitly.
 app.use((req, res, next) => {
   res.locals.broadcastMessage = models.getBroadcastMessage();
   res.locals.appVersion = CHANGELOG[0].version;
+  res.locals.recentRelease = isRecentRelease(CHANGELOG[0].date) ? CHANGELOG[0] : null;
   next();
 });
 

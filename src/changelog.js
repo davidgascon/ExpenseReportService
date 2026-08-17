@@ -4,6 +4,14 @@
 // shown in the footer, so bump it here whenever a new entry is added.
 const CHANGELOG = [
   {
+    version: '1.1.1',
+    date: '2026-08-16',
+    highlights: [
+      'Broadcast banner is now red and easier to notice, plus a separate "new update" banner appears for 3 days after a release',
+      'Removed the email field from the account page - upload confirmations aren\'t wired up yet',
+    ],
+  },
+  {
     version: '1.1.0',
     date: '2026-08-13',
     highlights: [

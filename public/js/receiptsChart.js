@@ -110,6 +110,7 @@
       // zero-value day easy to hover for its tooltip.
       var hit = el('rect', {
         class: 'bar-hit',
+        fill: 'transparent',
         x: MARGIN.left + i * slotWidth,
         y: MARGIN.top,
         width: slotWidth,

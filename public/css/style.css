@@ -70,6 +70,18 @@ body > .container { flex: 1; width: 100%; }
 body > .auth-container { flex: 1; }
 
 .broadcast-banner {
+  background: var(--error-bg);
+  color: var(--error-text);
+  border-bottom: 1px solid var(--error-border);
+  padding: 10px 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: pre-wrap;
+}
+
+.update-banner {
+  display: block;
   background: var(--hint-bg);
   color: var(--hint-text);
   border-bottom: 1px solid var(--hint-border);
@@ -77,8 +89,9 @@ body > .auth-container { flex: 1; }
   text-align: center;
   font-size: 0.9rem;
   font-weight: 600;
-  white-space: pre-wrap;
+  text-decoration: none;
 }
+.update-banner:hover { text-decoration: underline; }
 
 .topbar {
   display: flex;
@@ -261,7 +274,16 @@ button.danger:hover { background: var(--danger-tint); }
 .badge.missing-info { background: var(--danger-tint); color: var(--danger); cursor: help; }
 
 .receipts-chart { width: 100%; height: 220px; margin-top: 10px; }
-.receipts-chart svg { width: 100%; height: 100%; overflow: visible; }
+.receipts-chart svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  /* Without this, an inline SVG paints the browser's UA "Canvas" background
+     for its own box - which follows color-scheme, so it renders solid black
+     in dark mode (the app's default theme) instead of the card's background
+     showing through. */
+  background: transparent;
+}
 .receipts-chart .bar { fill: var(--primary); }
 .receipts-chart .bar-hit { fill: transparent; }
 .receipts-chart .gridline { stroke: var(--border); stroke-width: 1; }

@@ -18,7 +18,6 @@ router.post('/profile', (req, res) => {
     display_name: displayName,
     employee_number: (req.body.employee_number || '').trim(),
     department: (req.body.department || '').trim(),
-    email: (req.body.email || '').trim(),
   });
   // attachUser already ran (and set req.user/res.locals.currentUser) before
   // this handler, using the pre-update row - refresh both here too, or the
