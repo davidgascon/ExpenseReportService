@@ -4,6 +4,14 @@
 // shown in the footer, so bump it here whenever a new entry is added.
 const CHANGELOG = [
   {
+    version: '1.2.0',
+    date: '2026-08-17',
+    highlights: [
+      'Removed OCR - uploading now takes you straight to filling in each receipt\'s details by hand instead of waiting on a background scan',
+      'Uploading several receipts at once chains through each one\'s details in turn ("receipt 2 of 4") instead of dropping them all in the inbox unfilled',
+    ],
+  },
+  {
     version: '1.1.4',
     date: '2026-08-17',
     highlights: [

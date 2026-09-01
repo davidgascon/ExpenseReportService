@@ -82,7 +82,6 @@
                   <input type="checkbox" name="receipt_ids" value="<%= r.id %>" class="receipt-checkbox">
                   <span>
                     <strong><%= r.receipt_date || 'No date' %> — $<%= r.total.toFixed(2) %></strong>
-                    <% if (r.ocr_status === 'pending') { %><span class="badge draft" style="margin-left:6px;">scanning…</span><% } %>
                     <div class="receipt-summary-line">
                       <span>Project: <%= r.project_name || '—' %></span>
                       <span>GL Code: <%= r.gl_code || '—' %></span>

@@ -40,9 +40,6 @@ db.exec(`
   -- Receipts belong to a user directly (so they can be uploaded and sit in a
   -- personal "inbox" before being assigned to a report). report_id is NULL
   -- until the user checks it off to include in a specific report.
-  -- ocr_status is 'pending' while a background OCR scan is still running on
-  -- a freshly-uploaded image, and 'done' once it's finished (or wasn't
-  -- needed, e.g. a PDF receipt).
   CREATE TABLE IF NOT EXISTS receipts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -56,8 +53,6 @@ db.exec(`
     notes TEXT NOT NULL DEFAULT '',
     description TEXT NOT NULL DEFAULT 'Project Lunch: ',
     expense_category TEXT NOT NULL DEFAULT 'local_entertainment',
-    ocr_raw_text TEXT,
-    ocr_status TEXT NOT NULL DEFAULT 'done' CHECK (ocr_status IN ('pending', 'done')),
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -99,10 +94,6 @@ function columnNames(table) {
   return db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
 }
 
-if (!columnNames('receipts').includes('ocr_status')) {
-  db.exec("ALTER TABLE receipts ADD COLUMN ocr_status TEXT NOT NULL DEFAULT 'done'");
-}
-
 if (!columnNames('receipts').includes('gl_code')) {
   db.exec("ALTER TABLE receipts ADD COLUMN gl_code TEXT NOT NULL DEFAULT ''");
 }
@@ -129,6 +120,17 @@ db.prepare("UPDATE receipts SET description = 'Project Lunch: ' WHERE descriptio
 // range), so this is a straight drop rather than a full table rebuild.
 if (columnNames('receipts').includes('attendees')) {
   db.exec('ALTER TABLE receipts DROP COLUMN attendees');
+}
+
+// OCR was removed per explicit request - receipts now always need their
+// date/total filled in by hand right after upload instead of a background
+// scan suggesting them. Drops both OCR-only columns the same way attendees
+// was dropped above.
+if (columnNames('receipts').includes('ocr_status')) {
+  db.exec('ALTER TABLE receipts DROP COLUMN ocr_status');
+}
+if (columnNames('receipts').includes('ocr_raw_text')) {
+  db.exec('ALTER TABLE receipts DROP COLUMN ocr_raw_text');
 }
 
 // Which of the exported spreadsheet's five expense columns a receipt's

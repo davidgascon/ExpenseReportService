@@ -23,7 +23,6 @@ const accountRoutes = require('./src/routes/account');
 const reportsRoutes = require('./src/routes/reports');
 const receiptsRoutes = require('./src/routes/receipts');
 const adminRoutes = require('./src/routes/admin');
-const ocr = require('./src/ocr');
 const { CHANGELOG } = require('./src/changelog');
 
 const SqliteStore = require('better-sqlite3-session-store')(session);
@@ -127,7 +126,6 @@ const server = app.listen(PORT, () => {
 async function shutdown() {
   console.log('Shutting down...');
   server.close();
-  await ocr.shutdown();
   db.close();
   process.exit(0);
 }

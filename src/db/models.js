@@ -199,14 +199,13 @@ function deleteReport(id) {
 const DEFAULT_DESCRIPTION = 'Project Lunch: ';
 
 const insertReceiptStmt = db.prepare(`
-  INSERT INTO receipts (user_id, report_id, filename, original_name, receipt_date, total, project_name, gl_code, notes, description, expense_category, ocr_raw_text, ocr_status)
-  VALUES (@user_id, @report_id, @filename, @original_name, @receipt_date, @total, @project_name, @gl_code, @notes, @description, @expense_category, @ocr_raw_text, @ocr_status)
+  INSERT INTO receipts (user_id, report_id, filename, original_name, receipt_date, total, project_name, gl_code, notes, description, expense_category)
+  VALUES (@user_id, @report_id, @filename, @original_name, @receipt_date, @total, @project_name, @gl_code, @notes, @description, @expense_category)
 `);
 
 function createReceipt(data) {
   const info = insertReceiptStmt.run({
     report_id: null,
-    ocr_status: 'done',
     gl_code: '',
     description: DEFAULT_DESCRIPTION,
     expense_category: DEFAULT_EXPENSE_CATEGORY,
@@ -244,29 +243,6 @@ const updateReceiptStmt = db.prepare(`
 
 function updateReceipt(data) {
   return updateReceiptStmt.run(data);
-}
-
-// Applied by the background OCR job once it finishes. Only fills in
-// receipt_date/total if they're still at their untouched defaults, so we
-// don't clobber a value the user already typed in manually while the scan
-// was still running.
-const completeOcrScanStmt = db.prepare(`
-  UPDATE receipts SET
-    receipt_date = CASE WHEN receipt_date IS NULL THEN @receipt_date ELSE receipt_date END,
-    total = CASE WHEN total = 0 THEN @total ELSE total END,
-    ocr_raw_text = @ocr_raw_text,
-    ocr_status = 'done'
-  WHERE id = @id AND ocr_status = 'pending'
-`);
-
-function completeOcrScan({ id, receipt_date, total, ocr_raw_text }) {
-  return completeOcrScanStmt.run({ id, receipt_date, total: total || 0, ocr_raw_text: ocr_raw_text || null });
-}
-
-const markOcrDoneStmt = db.prepare(`UPDATE receipts SET ocr_status = 'done' WHERE id = ? AND ocr_status = 'pending'`);
-
-function markOcrDone(id) {
-  return markOcrDoneStmt.run(id);
 }
 
 // Attach a batch of the user's own currently-unassigned receipts to a report.
@@ -450,8 +426,6 @@ module.exports = {
   attachReceiptsToReport,
   detachReceiptFromReport,
   updateReceipt,
-  completeOcrScan,
-  markOcrDone,
   deleteReceipt,
   logActivity,
   getPerUserActivityStats,

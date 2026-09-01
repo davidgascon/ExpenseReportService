@@ -16,12 +16,11 @@ try {
   sharp = require('sharp');
 } catch (err) {
   console.error(
-    'WARNING: the "sharp" image library failed to load — receipts will be saved exactly as uploaded, without automatic EXIF orientation correction. Everything else (upload, OCR, reports, exports) is unaffected. Original error:',
+    'WARNING: the "sharp" image library failed to load — receipts will be saved exactly as uploaded, without automatic EXIF orientation correction. Everything else (upload, reports, exports) is unaffected. Original error:',
     err.message,
   );
 }
 const models = require('../db/models');
-const ocr = require('../ocr');
 const mailer = require('../mailer');
 const { UPLOAD_ROOT } = require('../config');
 const { EXPENSE_CATEGORIES, DEFAULT_EXPENSE_CATEGORY, EXPENSE_CATEGORY_KEYS } = require('../expenseCategories');
@@ -126,7 +125,7 @@ async function verifyAndFinalizeUpload(filePath) {
 // export feature) draws raw pixel data and ignores it, so receipts could
 // come out sideways/upside-down in the exported PDF. Baking the rotation
 // into the actual pixels once at upload time fixes that everywhere (the
-// "View file" link, OCR, and the PDF export) instead of just one of them.
+// "View file" link and the PDF export) instead of just one of them.
 //
 // This also happens to be where EXIF/metadata gets stripped: sharp only
 // keeps a source image's metadata (EXIF, GPS location tags, etc.) if
@@ -149,40 +148,19 @@ function renderInbox(req, res, extra) {
   res.render('inbox', { receipts, error: null, success: null, emptyStateMessage, ...extra });
 }
 
-// Runs in the background (not awaited by the request) so a slow OCR pass
-// never holds the browser waiting on the upload. Whatever finishes first —
-// the user editing the receipt manually or this job completing — wins for
-// the receipt_date/total fields (see models.completeOcrScan).
-function runOcrInBackground(receiptId, filePath) {
-  ocr.scanReceipt(filePath)
-    .then((scan) => {
-      models.completeOcrScan({
-        id: receiptId,
-        receipt_date: scan.suggestedDate,
-        total: scan.suggestedTotal,
-        ocr_raw_text: scan.rawText,
-      });
-    })
-    .catch((err) => {
-      console.error(`OCR failed for receipt ${receiptId}:`, err.message);
-      models.markOcrDone(receiptId);
-    });
-}
-
 router.get('/', (req, res) => {
-  const uploadedCount = Number(req.query.uploaded);
-  const success = uploadedCount > 0
-    ? `${uploadedCount} receipt${uploadedCount === 1 ? '' : 's'} uploaded — we're scanning ${uploadedCount === 1 ? 'it' : 'them'} now in the background. Go ahead and upload the next one, or come back later to fill in details.`
-    : null;
+  const success = req.query.saved ? 'Saved — the receipt is in your inbox.' : null;
   renderInbox(req, res, { success });
 });
 
 // Upload one or more receipts at once: save each and create its row
-// immediately (so the browser isn't stuck waiting), kick off OCR in the
-// background for images, and send the user right back to the inbox where
-// each receipt shows as "Scanning…" until it's done. The field name stays
-// "receipt" (singular) even though the input now accepts multiple files —
-// multer collects them all into req.files either way.
+// immediately (so the browser isn't stuck waiting), then send the user
+// straight to filling in its details - there's no more OCR to guess the
+// date/total, so that's the very next thing they need to do anyway. A
+// single upload goes straight to that receipt's edit page; more than one
+// chains through them via ?queue= (see the /:id/edit handlers below). The
+// field name stays "receipt" (singular) even though the input now accepts
+// multiple files — multer collects them all into req.files either way.
 router.post('/scan', (req, res) => {
   upload.array('receipt', 20)(req, res, async (err) => {
     if (err) {
@@ -198,6 +176,7 @@ router.post('/scan', (req, res) => {
     // message about which one(s) got rejected and why.
     const rejections = [];
     const uploadedForEmail = [];
+    const createdIds = [];
 
     for (const file of req.files) {
       const uploadedPath = path.join(userUploadDir(req.user.id), file.filename);
@@ -231,22 +210,17 @@ router.post('/scan', (req, res) => {
         project_name: '',
         gl_code: '',
         notes: '',
-        ocr_raw_text: null,
-        ocr_status: isImage ? 'pending' : 'done',
       });
 
       models.logActivity(req.user.id, 'receipt_upload', file.originalname);
 
       uploadedForEmail.push({ originalname: file.originalname, path: verified.filePath });
-
-      if (isImage) {
-        runOcrInBackground(receipt.id, verified.filePath); // not awaited — fires and returns
-      }
+      createdIds.push(receipt.id);
     }
 
-    // Fire-and-forget, same as the background OCR job above — email sending
-    // never holds up the upload response, and happens at upload time rather
-    // than waiting on OCR to finish.
+    // Fire-and-forget, same as everything else in this handler that doesn't
+    // need to hold up the response — email sending happens at upload time,
+    // not after some later background step.
     if (uploadedForEmail.length) {
       mailer.sendReceiptConfirmation(req.user, uploadedForEmail);
     }
@@ -257,7 +231,15 @@ router.post('/scan', (req, res) => {
       });
     }
 
-    res.redirect(`/receipts?uploaded=${uploadedForEmail.length}`);
+    // No OCR to guess the date/total anymore, so every new receipt needs
+    // them filled in by hand right away — send the user straight there
+    // instead of back to the inbox. One receipt edits directly; more than
+    // one chains through each in turn via ?queue= (see /:id/edit below).
+    const [firstId, ...restIds] = createdIds;
+    if (restIds.length === 0) {
+      return res.redirect(`/receipts/${firstId}/edit`);
+    }
+    res.redirect(`/receipts/${firstId}/edit?queue=${restIds.join(',')}&total=${createdIds.length}`);
   });
 });
 
@@ -298,7 +280,22 @@ router.get('/:id/edit', (req, res) => {
   if (!canEditReceipt(receipt)) {
     return res.status(400).render('error', { message: 'This receipt belongs to a submitted report and can no longer be edited. Reopen the report first.' });
   }
-  res.render('receipt-edit', { receipt, error: null, returnTo: req.query.from === 'report' ? 'report' : 'inbox', expenseCategories: EXPENSE_CATEGORIES });
+  // ?queue= carries the ids still waiting after this one, right after a
+  // multi-file upload (see /scan above); ?total= is the fixed size of that
+  // whole batch, used only to show "Receipt 2 of 4" - it doesn't shrink as
+  // the queue does, so it rides along as its own param instead.
+  const queue = (req.query.queue || '').trim();
+  const queueTotal = Number(req.query.total) || 0;
+  const queuePosition = queueTotal > 0 ? queueTotal - (queue ? queue.split(',').length : 0) : 0;
+  res.render('receipt-edit', {
+    receipt,
+    error: null,
+    returnTo: req.query.from === 'report' ? 'report' : 'inbox',
+    expenseCategories: EXPENSE_CATEGORIES,
+    queue,
+    queuePosition,
+    queueTotal,
+  });
 });
 
 router.post('/:id/edit', (req, res) => {
@@ -310,14 +307,18 @@ router.post('/:id/edit', (req, res) => {
     return res.status(400).render('error', { message: 'This receipt belongs to a submitted report and can no longer be edited. Reopen the report first.' });
   }
 
-  const { receipt_date, total, project_name, gl_code, notes, description, expense_category } = req.body;
+  const { receipt_date, total, project_name, gl_code, notes, description, expense_category, queue, queue_total: queueTotal } = req.body;
   const parsedTotal = parseFloat(total);
   if (Number.isNaN(parsedTotal) || parsedTotal < 0) {
+    const remaining = (queue || '').split(',').filter(Boolean);
     return res.status(400).render('receipt-edit', {
       receipt,
       error: 'Please enter a valid total amount.',
       returnTo: req.body.return_to === 'report' ? 'report' : 'inbox',
       expenseCategories: EXPENSE_CATEGORIES,
+      queue: queue || '',
+      queueTotal: Number(queueTotal) || 0,
+      queuePosition: Number(queueTotal) > 0 ? Number(queueTotal) - remaining.length : 0,
     });
   }
 
@@ -332,7 +333,22 @@ router.post('/:id/edit', (req, res) => {
     expense_category: EXPENSE_CATEGORY_KEYS.includes(expense_category) ? expense_category : DEFAULT_EXPENSE_CATEGORY,
   });
 
-  res.redirect(req.body.return_to === 'report' && receipt.report_id ? `/reports/${receipt.report_id}` : '/receipts');
+  // Mid-upload queue: move on to the next freshly-uploaded receipt instead
+  // of leaving the app once this one's done.
+  const remainingIds = (queue || '').split(',').filter(Boolean);
+  if (remainingIds.length > 0) {
+    const [nextId, ...restIds] = remainingIds;
+    return res.redirect(`/receipts/${nextId}/edit?queue=${restIds.join(',')}&total=${queueTotal || remainingIds.length + 1}`);
+  }
+
+  if (req.body.return_to === 'report' && receipt.report_id) {
+    return res.redirect(`/reports/${receipt.report_id}`);
+  }
+  // queueTotal is always some string here (the hidden field renders "0" for
+  // an ordinary edit that was never part of an upload queue) - a numeric
+  // check is needed so only the tail end of a real multi-file queue shows
+  // the "Saved" banner, not every everyday edit.
+  res.redirect(Number(queueTotal) > 0 ? '/receipts?saved=1' : '/receipts');
 });
 
 // Permanently delete a receipt. Only allowed while it's unassigned, or

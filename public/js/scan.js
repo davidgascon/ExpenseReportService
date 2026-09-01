@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chooseBtn.disabled = true;
         chooseBtn.textContent = 'Uploading…';
       }
-      showLoadingOverlay('Uploading receipt and starting the scan…');
+      showLoadingOverlay('Uploading…');
     });
   }
 
@@ -45,15 +45,5 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }
     });
-  }
-
-  // If something in the inbox is still being scanned, quietly refresh the
-  // page every 10s so it flips from "Scanning…" to real data without the
-  // user having to hit refresh themselves.
-  var table = document.getElementById('receiptTable');
-  if (table && table.getAttribute('data-has-pending') === 'true') {
-    setTimeout(function () {
-      window.location.reload();
-    }, 10000);
   }
 });

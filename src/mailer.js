@@ -15,9 +15,8 @@ const transporter = SMTP_HOST
 
 // Sends one confirmation email per upload batch, with each uploaded file
 // attached as the "for your records" copy. Meant to be called fire-and-forget
-// right after the receipt row(s) are created (not awaited by the request),
-// same as the background OCR job - a slow or failing send should never hold
-// up the upload response.
+// right after the receipt row(s) are created (not awaited by the request) -
+// a slow or failing send should never hold up the upload response.
 async function sendReceiptConfirmation(user, files) {
   if (!transporter) return; // SMTP not configured - nothing to do
   if (!user.email || !user.email.trim()) return; // user hasn't set an email

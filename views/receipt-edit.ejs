@@ -11,11 +11,11 @@
   <%- include('partials/topbar') %>
   <div class="container">
     <div class="card">
-      <h2 style="margin-top:0;">Edit receipt</h2>
+      <h2 style="margin-top:0;">
+        Edit receipt
+        <% if (queueTotal > 1) { %><span class="field-hint" style="display:inline; font-weight:400;">— receipt <%= queuePosition %> of <%= queueTotal %></span><% } %>
+      </h2>
       <% if (error) { %><div class="error-banner"><%= error %></div><% } %>
-      <% if (receipt.ocr_status === 'pending') { %>
-        <div class="ocr-hint">This receipt is still being scanned in the background — feel free to fill in the details yourself now, or come back in a minute or two once scanning finishes.</div>
-      <% } %>
 
       <div class="actions-row" style="margin-bottom:14px;">
         <a class="file-link js-view-file" href="/receipts/<%= receipt.id %>/file" data-file-name="<%= receipt.original_name || 'Receipt' %>" data-file-type="<%= /\.(jpe?g|png|gif|webp|bmp)$/i.test(receipt.original_name || '') ? 'image' : 'pdf' %>" target="_blank">View original file</a>
@@ -23,6 +23,8 @@
 
       <form method="POST" action="/receipts/<%= receipt.id %>/edit">
         <input type="hidden" name="return_to" value="<%= returnTo %>">
+        <input type="hidden" name="queue" value="<%= queue %>">
+        <input type="hidden" name="queue_total" value="<%= queueTotal %>">
 
         <label for="receipt_date">Date</label>
         <input type="date" id="receipt_date" name="receipt_date" value="<%= receipt.receipt_date || '' %>">
@@ -53,7 +55,7 @@
         <textarea id="notes" name="notes" placeholder="Purpose of the expense, client name, etc."><%= receipt.notes || '' %></textarea>
 
         <div class="actions-row">
-          <button type="submit">Save Changes</button>
+          <button type="submit"><%= queue ? 'Save & Next' : 'Save Changes' %></button>
           <a href="<%= returnTo === 'report' && receipt.report_id ? '/reports/' + receipt.report_id : '/receipts' %>" class="btn secondary">Cancel</a>
         </div>
       </form>
@@ -62,5 +64,16 @@
   <%- include('partials/footer') %>
   <script src="/js/theme.js"></script>
   <script src="/js/filePreview.js"></script>
+  <% if (!receipt.receipt_date) { %>
+    <script>
+      // A receipt with no date yet has never been through this form before
+      // (freshly uploaded) - open the file preview automatically so there's
+      // something to fill in details *from* without an extra click.
+      document.addEventListener('DOMContentLoaded', function () {
+        var link = document.querySelector('.js-view-file');
+        if (link) link.click();
+      });
+    </script>
+  <% } %>
 </body>
 </html>

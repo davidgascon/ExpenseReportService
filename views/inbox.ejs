@@ -27,7 +27,7 @@
         </div>
         <p class="field-hint">iPhone photos (HEIC) are supported — they're automatically converted so they preview correctly everywhere.</p>
         <p class="field-hint">You can select more than one file at once — hold Ctrl/Cmd (or Shift for a range) in the file picker.</p>
-        <p class="small muted">Picking file(s) uploads them right away — we'll scan each one for a date and total in the background, and you can fix anything it gets wrong afterward.</p>
+        <p class="small muted">Picking file(s) uploads them right away — you'll be taken straight to filling in the date, total, and other details for each one.</p>
       </form>
     </div>
 
@@ -40,7 +40,7 @@
         <div class="empty-state"><%= emptyStateMessage %></div>
       <% } else { %>
         <div class="table-wrap">
-        <table class="receipt-table" id="receiptTable" data-has-pending="<%= receipts.some(r => r.ocr_status === 'pending') %>">
+        <table class="receipt-table">
           <thead>
             <tr>
               <th>Date</th>
@@ -54,35 +54,20 @@
           </thead>
           <tbody>
             <% receipts.forEach(function(r) { %>
-              <% if (r.ocr_status === 'pending') { %>
-                <tr>
-                  <td colspan="6">
-                    <span class="spinner" aria-hidden="true"></span>
-                    Scanning receipt… (usually takes a minute or two)
-                    — <a class="file-link" href="/receipts/<%= r.id %>/edit">fill in details now instead</a>
-                  </td>
-                  <td>
-                    <form method="POST" action="/receipts/<%= r.id %>/delete" onsubmit="return confirm('Delete this receipt permanently?');">
-                      <button type="submit" class="danger" style="padding:4px 10px;">Delete</button>
-                    </form>
-                  </td>
-                </tr>
-              <% } else { %>
-                <tr>
-                  <td><%= r.receipt_date || '—' %></td>
-                  <td><%= r.project_name || '—' %></td>
-                  <td><%= r.gl_code || '—' %></td>
-                  <td><%= r.description || '—' %></td>
-                  <td><a class="file-link js-view-file" href="/receipts/<%= r.id %>/file" data-file-name="<%= r.original_name || 'Receipt' %>" data-file-type="<%= /\.(jpe?g|png|gif|webp|bmp)$/i.test(r.original_name || '') ? 'image' : 'pdf' %>" target="_blank">View file</a></td>
-                  <td class="amount">$<%= r.total.toFixed(2) %></td>
-                  <td style="white-space:nowrap;">
-                    <a href="/receipts/<%= r.id %>/edit" class="btn secondary" style="padding:4px 10px;">Edit</a>
-                    <form method="POST" action="/receipts/<%= r.id %>/delete" style="display:inline;" onsubmit="return confirm('Delete this receipt permanently?');">
-                      <button type="submit" class="danger" style="padding:4px 10px;">Delete</button>
-                    </form>
-                  </td>
-                </tr>
-              <% } %>
+              <tr>
+                <td><%= r.receipt_date || '—' %></td>
+                <td><%= r.project_name || '—' %></td>
+                <td><%= r.gl_code || '—' %></td>
+                <td><%= r.description || '—' %></td>
+                <td><a class="file-link js-view-file" href="/receipts/<%= r.id %>/file" data-file-name="<%= r.original_name || 'Receipt' %>" data-file-type="<%= /\.(jpe?g|png|gif|webp|bmp)$/i.test(r.original_name || '') ? 'image' : 'pdf' %>" target="_blank">View file</a></td>
+                <td class="amount">$<%= r.total.toFixed(2) %></td>
+                <td style="white-space:nowrap;">
+                  <a href="/receipts/<%= r.id %>/edit" class="btn secondary" style="padding:4px 10px;">Edit</a>
+                  <form method="POST" action="/receipts/<%= r.id %>/delete" style="display:inline;" onsubmit="return confirm('Delete this receipt permanently?');">
+                    <button type="submit" class="danger" style="padding:4px 10px;">Delete</button>
+                  </form>
+                </td>
+              </tr>
             <% }); %>
           </tbody>
         </table>

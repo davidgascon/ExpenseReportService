@@ -15,10 +15,11 @@ page per receipt) and "submitted" (locked) when you're done.
   as they happen, whatever) — they sit in your inbox until you check them
   off to include in a specific report. A receipt can be pulled back out of
   a report into the inbox at any point while the report is still a draft
-- Upload a receipt (JPEG/PNG/PDF), and the app OCR-scans it to suggest a
-  date and total — you always confirm/edit before it's saved
-- Each receipt records: date, total, **project name/number**, who attended
-  (optional), and notes
+- Upload a receipt (JPEG/PNG/PDF) and you're taken straight to filling in
+  its date and total — one receipt at a time if you upload several at once
+- Each receipt records: date, total, expense category (which column it
+  lands in on the exported spreadsheet), **project name/number**, GL code,
+  description, and notes
 - Create as many reports as you like, named however you like (defaults to
   today's date, but renameable) — weekly, monthly, quarterly, per-trip
 - Draft reports can be freely edited; "Submit" locks a report from further
@@ -28,8 +29,7 @@ page per receipt) and "submitted" (locked) when you're done.
   receipt in the report, followed by one page per receipt (its total, notes,
   and the original receipt image/PDF — every page of a multi-page PDF)
 - Light/dark mode toggle (remembers your preference)
-- Runs fully offline — OCR uses a bundled language model, no external API
-  keys or cloud services required
+- Runs fully offline — no external API keys or cloud services required
 - Single SQLite database file, easy to back up
 
 ## Requirements
@@ -265,21 +265,15 @@ tar czf /var/backups/expense-reports-$(date +%F).tar.gz -C /opt/expense-report-s
 folder next to your `docker-compose.yml` — back that up directly, no need
 to go through Docker to reach it.)
 
-## How the OCR works
+## Uploading receipts
 
-When you upload a receipt image, the server runs Tesseract OCR against it
-and looks for a total (near words like "total", "amount due", "balance
-due") and a date in common formats. Those suggestions pre-fill the "Date"
-and "Total" fields on the confirmation screen — always double-check them,
-since OCR on receipts (especially crumpled or low-quality photos) isn't
-perfect. Project name/number, who attended, and notes are always filled in
-manually. PDF receipts skip OCR (only JPEG/PNG are scanned) — just enter
-the date and total by hand for those. (WEBP images aren't accepted — the
-PDF export feature embeds images directly and its library only supports
-JPEG/PNG; convert a WEBP receipt to one of those first if you run into it.)
-
-The English language model is bundled as an npm package, so OCR works
-without any internet access on the server at runtime.
+Uploading one receipt takes you straight to its edit form to fill in the
+date, total, expense category, and everything else by hand — there's no OCR
+step guessing those for you. Uploading several at once chains through each
+one's edit form in turn, so nothing gets uploaded without also being filled
+in. (WEBP images aren't accepted — the PDF export feature embeds images
+directly and its library only supports JPEG/PNG; convert a WEBP receipt to
+one of those first if you run into it.)
 
 ## Notes on scale and security
 

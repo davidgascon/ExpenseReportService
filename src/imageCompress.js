@@ -1,8 +1,8 @@
 // Recompresses a receipt image before it's embedded into an exported PDF,
 // so a report full of full-resolution phone photos doesn't produce a huge
 // PDF. This never touches the original stored file - only the copy of the
-// bytes that goes into the export - so "View file," OCR, and re-exporting
-// later all still work from the untouched original.
+// bytes that goes into the export - so "View file" and re-exporting later
+// both still work from the untouched original.
 //
 // Two implementations, tried in this order:
 //   1. sharp, when it's available - faster and higher quality per byte.
