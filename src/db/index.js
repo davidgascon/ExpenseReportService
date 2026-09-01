@@ -152,6 +152,12 @@ if (!columnNames('users').includes('department')) {
   db.exec("ALTER TABLE users ADD COLUMN department TEXT NOT NULL DEFAULT ''");
 }
 
+// Supervisor's name, printed under the "Approved By (Please Print)" header
+// on the exported spreadsheet (cell F5, merged F5:H5).
+if (!columnNames('users').includes('supervisor')) {
+  db.exec("ALTER TABLE users ADD COLUMN supervisor TEXT NOT NULL DEFAULT ''");
+}
+
 // Optional email, used to send a "for your records" copy of each upload
 // batch (see src/mailer.js) - blank is fine and simply means that user never
 // gets emailed.

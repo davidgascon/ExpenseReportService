@@ -138,8 +138,8 @@ function clearDataRow(ws, row) {
  * @param {object} report
  * @param {object[]} receipts
  * @param {object} user - report owner; supplies the Employee Name, Employee #,
- *   and Department header fields (employee_number/department are editable
- *   per-user on the Account page, not baked into the template anymore)
+ *   Department, and Supervisor header fields (all editable per-user on the
+ *   Account page, not baked into the template anymore)
  * @returns {Promise<ExcelJS.Workbook>}
  */
 async function buildFilledWorkbook(report, receipts, user) {
@@ -164,6 +164,9 @@ async function buildFilledWorkbook(report, receipts, user) {
   ws.getCell('E3').value = new Date();
   ws.getCell('F3').value = periodCoveredLabel(receipts);
   ws.getCell('K3').value = user.department || '';
+  // Printed under the "Approved By (Please Print)" label (F4) - F5 is the
+  // anchor cell of the F5:H5 merge added for this.
+  ws.getCell('F5').value = user.supervisor || '';
 
   // The template's own header text has a stray hyphen baked into the cell
   // ("EDUCA-TION" across the merged F6:F9 block) — fix it to read correctly

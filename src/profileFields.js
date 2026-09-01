@@ -7,6 +7,7 @@
 const OPTIONAL_FIELDS = [
   { key: 'employee_number', label: 'Employee #', hint: 'for your exported spreadsheet' },
   { key: 'department', label: 'Department', hint: 'for your exported spreadsheet' },
+  { key: 'supervisor', label: 'Supervisor', hint: 'for your exported spreadsheet' },
 ];
 
 function getMissingProfileFields(user) {
