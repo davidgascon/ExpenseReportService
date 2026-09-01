@@ -4,6 +4,14 @@
 // shown in the footer, so bump it here whenever a new entry is added.
 const CHANGELOG = [
   {
+    version: '1.2.3',
+    date: '2026-08-31',
+    highlights: [
+      'Added a "Your supervisor" field to the account page - prints under "Approved By" on the exported spreadsheet',
+      'Pressing Escape while a report export is loading now actually cancels it, instead of just sitting there',
+    ],
+  },
+  {
     version: '1.2.2',
     date: '2026-08-31',
     highlights: [

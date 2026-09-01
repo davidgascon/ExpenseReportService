@@ -52,7 +52,7 @@ function updateDisplayName(id, displayName) {
 // instead of everyone sharing whatever was baked into David's original
 // template file.
 const updateProfileStmt = db.prepare(`
-  UPDATE users SET display_name = @display_name, employee_number = @employee_number, department = @department
+  UPDATE users SET display_name = @display_name, employee_number = @employee_number, department = @department, supervisor = @supervisor
   WHERE id = @id
 `);
 
