@@ -111,7 +111,7 @@ router.get('/:id/export', loadOwnedReport, async (req, res, next) => {
     const xlsxBuffer = await workbook.xlsx.writeBuffer();
     const excelPdfBytes = await convertXlsxBufferToPdf(xlsxBuffer);
     const pdfBytes = await buildReportPdf(req.report, receipts, userUploadDir, excelPdfBytes);
-    const safeName = req.report.name.replace(/[^a-z0-9-_ ]/gi, '').trim() || 'expense-report';
+    const safeName = `${req.user.display_name} - ${req.report.name}`.replace(/[^a-z0-9-_ ]/gi, '').trim() || 'expense-report';
     models.logActivity(req.user.id, 'report_exported', req.report.name);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${safeName}.pdf"`);
@@ -131,7 +131,7 @@ router.get('/:id/export-excel', loadOwnedReport, async (req, res, next) => {
   try {
     const receipts = models.listReceiptsForReport(req.report.id);
     const buffer = await buildReportExcelBuffer(req.report, receipts, req.user);
-    const safeName = req.report.name.replace(/[^a-z0-9-_ ]/gi, '').trim() || 'expense-report';
+    const safeName = `${req.user.display_name} - ${req.report.name}`.replace(/[^a-z0-9-_ ]/gi, '').trim() || 'expense-report';
     models.logActivity(req.user.id, 'report_exported', `${req.report.name} (excel)`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${safeName}.xlsx"`);

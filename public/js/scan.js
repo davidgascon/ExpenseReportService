@@ -1,10 +1,5 @@
-function showLoadingOverlay(message) {
-  var overlay = document.createElement('div');
-  overlay.className = 'loading-overlay';
-  overlay.innerHTML = '<div class="loading-box"><span class="spinner spinner-lg" aria-hidden="true"></span><p>' + message + '</p></div>';
-  document.body.appendChild(overlay);
-}
-
+// showLoadingOverlay/hideLoadingOverlay come from loadingOverlay.js, loaded
+// before this file.
 document.addEventListener('DOMContentLoaded', function () {
   var form = document.getElementById('scanForm');
   var fileInput = document.getElementById('receipt');

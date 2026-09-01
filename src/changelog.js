@@ -4,6 +4,14 @@
 // shown in the footer, so bump it here whenever a new entry is added.
 const CHANGELOG = [
   {
+    version: '1.2.1',
+    date: '2026-08-17',
+    highlights: [
+      'Exported files are now named "Your Name - Report Name" instead of just the report name',
+      'Exporting a report now shows an actual loading indicator instead of no feedback while it builds',
+    ],
+  },
+  {
     version: '1.2.0',
     date: '2026-08-17',
     highlights: [

@@ -50,8 +50,8 @@
             <button type="submit">Mark as Paid</button>
           </form>
         <% } %>
-        <a href="/reports/<%= report.id %>/export" class="btn secondary">Export PDF (with receipts)</a>
-        <a href="/reports/<%= report.id %>/export-excel" class="btn secondary">Export Excel (MMFS)</a>
+        <a href="/reports/<%= report.id %>/export" class="btn secondary js-export-btn">Export PDF (with receipts)</a>
+        <a href="/reports/<%= report.id %>/export-excel" class="btn secondary js-export-btn">Export Excel (MMFS)</a>
         <form method="POST" action="/reports/<%= report.id %>/delete" class="delete-inline" onsubmit="return confirm('Delete this report? Its receipts will go back to your inbox, unassigned — this just removes the report itself and cannot be undone.');">
           <button type="submit" class="danger">Delete Report</button>
         </form>
@@ -158,5 +158,7 @@
   <%- include('partials/footer') %>
   <script src="/js/theme.js"></script>
   <script src="/js/filePreview.js"></script>
+  <script src="/js/loadingOverlay.js"></script>
+  <script src="/js/reportExport.js"></script>
 </body>
 </html>
