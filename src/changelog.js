@@ -4,6 +4,13 @@
 // shown in the footer, so bump it here whenever a new entry is added.
 const CHANGELOG = [
   {
+    version: '1.2.2',
+    date: '2026-08-31',
+    highlights: [
+      'Fix a bug where editing the Excel template to use a filled-down formula (instead of typing one into every cell) silently stripped formulas from the exported spreadsheet',
+    ],
+  },
+  {
     version: '1.2.1',
     date: '2026-08-17',
     highlights: [

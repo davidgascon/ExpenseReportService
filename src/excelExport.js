@@ -102,12 +102,24 @@ function descriptionFor(r) {
 // text untouched, so the file shows correct totals immediately even in a
 // viewer that doesn't recalculate on open (and stays a live formula for
 // David if he opens it in Excel and edits a number by hand afterward).
+//
+// A cell that's part of an Excel "shared formula" group (filling a formula
+// down/across a range, rather than typing it into every cell individually)
+// exposes it differently depending on whether the cell is the group's
+// master or one of its slaves: the master has `.formula` like a normal
+// formula cell, but a slave only has `.sharedFormula` (pointing back at the
+// master's address) - it never has `.formula` itself. Missing that case
+// meant editing the template to use a filled-down formula (instead of one
+// typed into every cell) silently stripped formulas from every slave cell
+// on export, replacing them with a plain number.
 function setFormulaResult(cell, result) {
-  const existingFormula = typeof cell.value === 'object' && cell.value && cell.value.formula
-    ? cell.value.formula
-    : cell.formula;
-  if (existingFormula) {
-    cell.value = { formula: existingFormula, result };
+  const value = cell.value;
+  if (value && typeof value === 'object' && value.formula) {
+    cell.value = { formula: value.formula, result };
+  } else if (value && typeof value === 'object' && value.sharedFormula) {
+    cell.value = { sharedFormula: value.sharedFormula, result };
+  } else if (cell.formula) {
+    cell.value = { formula: cell.formula, result };
   } else {
     cell.value = result;
   }
