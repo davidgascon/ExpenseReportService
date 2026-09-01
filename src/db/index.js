@@ -55,6 +55,7 @@ db.exec(`
     gl_code TEXT NOT NULL DEFAULT '',
     notes TEXT NOT NULL DEFAULT '',
     description TEXT NOT NULL DEFAULT 'Project Lunch: ',
+    expense_category TEXT NOT NULL DEFAULT 'local_entertainment',
     ocr_raw_text TEXT,
     ocr_status TEXT NOT NULL DEFAULT 'done' CHECK (ocr_status IN ('pending', 'done')),
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -128,6 +129,15 @@ db.prepare("UPDATE receipts SET description = 'Project Lunch: ' WHERE descriptio
 // range), so this is a straight drop rather than a full table rebuild.
 if (columnNames('receipts').includes('attendees')) {
   db.exec('ALTER TABLE receipts DROP COLUMN attendees');
+}
+
+// Which of the exported spreadsheet's five expense columns a receipt's
+// total lands in - previously always "Local Entertainment" regardless of
+// what the expense actually was (see src/expenseCategories.js). Existing
+// receipts default to the same column they'd always been exported into, so
+// this is a no-op for every receipt already in the database.
+if (!columnNames('receipts').includes('expense_category')) {
+  db.exec("ALTER TABLE receipts ADD COLUMN expense_category TEXT NOT NULL DEFAULT 'local_entertainment'");
 }
 
 // Employee # and Department are now per-user, editable fields (used to

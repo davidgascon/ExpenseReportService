@@ -24,6 +24,7 @@ const models = require('../db/models');
 const ocr = require('../ocr');
 const mailer = require('../mailer');
 const { UPLOAD_ROOT } = require('../config');
+const { EXPENSE_CATEGORIES, DEFAULT_EXPENSE_CATEGORY, EXPENSE_CATEGORY_KEYS } = require('../expenseCategories');
 const { sniff, EXT_FOR_TYPE, CONTENT_TYPE_FOR_TYPE } = require('../fileSniff');
 const convertHeic = require('heic-convert');
 
@@ -297,7 +298,7 @@ router.get('/:id/edit', (req, res) => {
   if (!canEditReceipt(receipt)) {
     return res.status(400).render('error', { message: 'This receipt belongs to a submitted report and can no longer be edited. Reopen the report first.' });
   }
-  res.render('receipt-edit', { receipt, error: null, returnTo: req.query.from === 'report' ? 'report' : 'inbox' });
+  res.render('receipt-edit', { receipt, error: null, returnTo: req.query.from === 'report' ? 'report' : 'inbox', expenseCategories: EXPENSE_CATEGORIES });
 });
 
 router.post('/:id/edit', (req, res) => {
@@ -309,10 +310,15 @@ router.post('/:id/edit', (req, res) => {
     return res.status(400).render('error', { message: 'This receipt belongs to a submitted report and can no longer be edited. Reopen the report first.' });
   }
 
-  const { receipt_date, total, project_name, gl_code, notes, description } = req.body;
+  const { receipt_date, total, project_name, gl_code, notes, description, expense_category } = req.body;
   const parsedTotal = parseFloat(total);
   if (Number.isNaN(parsedTotal) || parsedTotal < 0) {
-    return res.status(400).render('receipt-edit', { receipt, error: 'Please enter a valid total amount.', returnTo: req.body.return_to === 'report' ? 'report' : 'inbox' });
+    return res.status(400).render('receipt-edit', {
+      receipt,
+      error: 'Please enter a valid total amount.',
+      returnTo: req.body.return_to === 'report' ? 'report' : 'inbox',
+      expenseCategories: EXPENSE_CATEGORIES,
+    });
   }
 
   models.updateReceipt({
@@ -323,6 +329,7 @@ router.post('/:id/edit', (req, res) => {
     gl_code: (gl_code || '').trim(),
     notes: (notes || '').trim(),
     description: (description || '').trim(),
+    expense_category: EXPENSE_CATEGORY_KEYS.includes(expense_category) ? expense_category : DEFAULT_EXPENSE_CATEGORY,
   });
 
   res.redirect(req.body.return_to === 'report' && receipt.report_id ? `/reports/${receipt.report_id}` : '/receipts');

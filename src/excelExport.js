@@ -1,11 +1,14 @@
 const path = require('path');
 const ExcelJS = require('exceljs');
+const { DEFAULT_EXPENSE_CATEGORY } = require('./expenseCategories');
 
 // Fills MacDonald-Miller's own "General" tab reimbursement form — the exact
 // file David uses at work (templates/Expense_Report_General.xlsx) — rather
 // than generating an approximation of it. Per his explicit direction:
-//   - every receipt's total goes in the Local Entertainment column,
-//     regardless of what it actually was
+//   - each receipt's total goes in whichever of the five expense columns
+//     its expense_category picks (previously always hardcoded to Local
+//     Entertainment regardless of what it actually was - see
+//     src/expenseCategories.js)
 //   - the GL/Job Cost Code column is the receipt's own gl_code field
 //   - only the General tab matters; the other three MMFS tabs are unused
 //
@@ -36,7 +39,7 @@ const COL = {
   DATE: 1, // A
   DESCRIPTION: 2, // B (merged B:E per row)
   EDUCATION: 6, // F
-  LOCAL_ENTERTAINMENT: 7, // G — every receipt's total lands here
+  LOCAL_ENTERTAINMENT: 7, // G
   VEHICLE: 8, // H
   MISC: 9, // I
   OUT_OF_TOWN_1: 10, // J
@@ -44,6 +47,22 @@ const COL = {
   GL_CODE: 12, // L
   TOTAL: 13, // M — formula, cached result only
 };
+
+// Maps each expense_category key (see src/expenseCategories.js) to the
+// column its total lands in. OUT_OF_TOWN_2 (column K) is deliberately never
+// targeted - the template's own header merges J:K under one "Out of Town"
+// label, and the totals-row formula only ever summed column J.
+const COLUMN_FOR_CATEGORY = {
+  local_entertainment: COL.LOCAL_ENTERTAINMENT,
+  education: COL.EDUCATION,
+  vehicle: COL.VEHICLE,
+  misc: COL.MISC,
+  out_of_town: COL.OUT_OF_TOWN_1,
+};
+
+function columnForCategory(category) {
+  return COLUMN_FOR_CATEGORY[category] || COLUMN_FOR_CATEGORY[DEFAULT_EXPENSE_CATEGORY];
+}
 
 // The template has a few stray columns past M (a blank spacer column N, and
 // O/P which held duplicate totals and informal personal notes from David's
@@ -162,21 +181,25 @@ async function buildFilledWorkbook(report, receipts, user) {
 
     if (r.receipt_date) rowRef.getCell(COL.DATE).value = new Date(`${r.receipt_date}T00:00:00Z`);
     rowRef.getCell(COL.DESCRIPTION).value = descriptionFor(r);
-    rowRef.getCell(COL.LOCAL_ENTERTAINMENT).value = Number(r.total || 0);
+    rowRef.getCell(columnForCategory(r.expense_category)).value = Number(r.total || 0);
     if (r.gl_code) rowRef.getCell(COL.GL_CODE).value = r.gl_code;
     setFormulaResult(rowRef.getCell(COL.TOTAL), Number(r.total || 0));
   }
 
-  // Totals row: every category column except Local Entertainment sums to
-  // zero (shown as "" per the template's own IF formula), since every
-  // receipt goes into Local Entertainment by design.
+  // Totals row: each category column sums just the receipts that landed in
+  // it (shown as "" per the template's own IF formula when there's nothing
+  // in that category), rather than assuming everything is Local
+  // Entertainment.
+  const categoryTotals = {};
+  sorted.forEach((r) => {
+    const col = columnForCategory(r.expense_category);
+    categoryTotals[col] = (categoryTotals[col] || 0) + Number(r.total || 0);
+  });
   const grandTotal = sorted.reduce((sum, r) => sum + Number(r.total || 0), 0);
   const totalsRow = ws.getRow(TOTALS_ROW);
-  setFormulaResult(totalsRow.getCell(COL.EDUCATION), '');
-  setFormulaResult(totalsRow.getCell(COL.LOCAL_ENTERTAINMENT), grandTotal || '');
-  setFormulaResult(totalsRow.getCell(COL.VEHICLE), '');
-  setFormulaResult(totalsRow.getCell(COL.MISC), '');
-  setFormulaResult(totalsRow.getCell(COL.OUT_OF_TOWN_1), '');
+  [COL.EDUCATION, COL.LOCAL_ENTERTAINMENT, COL.VEHICLE, COL.MISC, COL.OUT_OF_TOWN_1].forEach((col) => {
+    setFormulaResult(totalsRow.getCell(col), categoryTotals[col] || '');
+  });
   setFormulaResult(totalsRow.getCell(COL.TOTAL), grandTotal || 0);
 
   // Drop every column past M entirely (a blank spacer plus two stray

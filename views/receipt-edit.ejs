@@ -30,6 +30,16 @@
         <label for="total">Total ($)</label>
         <input type="number" id="total" name="total" step="0.01" min="0" value="<%= receipt.total ? receipt.total.toFixed(2) : '' %>" required>
 
+        <label class="field-hint" style="display:block; margin-bottom:4px;">Expense category <span style="display:inline;">(which column this total goes into on the exported spreadsheet)</span></label>
+        <div class="radio-group">
+          <% expenseCategories.forEach(function(c) { %>
+            <label class="radio-option">
+              <input type="radio" name="expense_category" value="<%= c.key %>" <%= (receipt.expense_category || 'local_entertainment') === c.key ? 'checked' : '' %>>
+              <%= c.label %><% if (c.hint) { %> <span class="field-hint" style="display:inline;">(<%= c.hint %>)</span><% } %>
+            </label>
+          <% }); %>
+        </div>
+
         <label for="project_name">Project name/number <span class="field-hint" style="display:inline;">(just for your own reference — not used on the exported spreadsheet)</span></label>
         <input type="text" id="project_name" name="project_name" value="<%= receipt.project_name || '' %>" placeholder="e.g. Downtown Chiller Retrofit">
 

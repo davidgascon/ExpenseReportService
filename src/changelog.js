@@ -4,6 +4,13 @@
 // shown in the footer, so bump it here whenever a new entry is added.
 const CHANGELOG = [
   {
+    version: '1.1.4',
+    date: '2026-08-17',
+    highlights: [
+      'Receipts now have a selectable expense category (Local Entertainment, Education, Vehicle, Misc, Out of Town) instead of always exporting to Local Entertainment',
+    ],
+  },
+  {
     version: '1.1.3',
     date: '2026-08-17',
     highlights: [

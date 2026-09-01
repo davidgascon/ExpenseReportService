@@ -1,4 +1,5 @@
 const db = require('./index');
+const { DEFAULT_EXPENSE_CATEGORY } = require('../expenseCategories');
 
 // ---------- Users ----------
 
@@ -198,12 +199,19 @@ function deleteReport(id) {
 const DEFAULT_DESCRIPTION = 'Project Lunch: ';
 
 const insertReceiptStmt = db.prepare(`
-  INSERT INTO receipts (user_id, report_id, filename, original_name, receipt_date, total, project_name, gl_code, notes, description, ocr_raw_text, ocr_status)
-  VALUES (@user_id, @report_id, @filename, @original_name, @receipt_date, @total, @project_name, @gl_code, @notes, @description, @ocr_raw_text, @ocr_status)
+  INSERT INTO receipts (user_id, report_id, filename, original_name, receipt_date, total, project_name, gl_code, notes, description, expense_category, ocr_raw_text, ocr_status)
+  VALUES (@user_id, @report_id, @filename, @original_name, @receipt_date, @total, @project_name, @gl_code, @notes, @description, @expense_category, @ocr_raw_text, @ocr_status)
 `);
 
 function createReceipt(data) {
-  const info = insertReceiptStmt.run({ report_id: null, ocr_status: 'done', gl_code: '', description: DEFAULT_DESCRIPTION, ...data });
+  const info = insertReceiptStmt.run({
+    report_id: null,
+    ocr_status: 'done',
+    gl_code: '',
+    description: DEFAULT_DESCRIPTION,
+    expense_category: DEFAULT_EXPENSE_CATEGORY,
+    ...data,
+  });
   return getReceiptById(info.lastInsertRowid);
 }
 
@@ -230,7 +238,7 @@ function listUnassignedReceiptsForUser(userId) {
 }
 
 const updateReceiptStmt = db.prepare(`
-  UPDATE receipts SET receipt_date = @receipt_date, total = @total, project_name = @project_name, gl_code = @gl_code, notes = @notes, description = @description
+  UPDATE receipts SET receipt_date = @receipt_date, total = @total, project_name = @project_name, gl_code = @gl_code, notes = @notes, description = @description, expense_category = @expense_category
   WHERE id = @id
 `);
 
