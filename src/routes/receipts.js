@@ -292,11 +292,51 @@ router.get('/:id/edit', (req, res) => {
     error: null,
     returnTo: req.query.from === 'report' ? 'report' : 'inbox',
     expenseCategories: EXPENSE_CATEGORIES,
+    projects: models.listProjects(),
     queue,
     queuePosition,
     queueTotal,
   });
 });
+
+// Resolves the submitted project_id field to an actual project id (or null
+// for "no project"): "new" means the two new_project_* fields describe a
+// project to find-or-create first, matching an existing number rather than
+// creating a duplicate (see models.findOrCreateProject). Returns
+// { projectId, projectName, error } - projectName is the denormalized
+// "<number> - <name>" string every other view already expects in
+// receipts.project_name.
+function resolveProject(body, userId, existingReceipt) {
+  const projectId = (body.project_id || '').trim();
+
+  if (!projectId) {
+    // "No project" selected. A receipt from before this feature existed may
+    // still have a plain typed project_name and no project_id - leave that
+    // text alone rather than blanking it on the next save of something
+    // unrelated. A receipt that previously *was* linked to a project has no
+    // such legacy text to protect, so clearing it here is a real "detach."
+    if (!existingReceipt.project_id) {
+      return { projectId: null, projectName: existingReceipt.project_name || '' };
+    }
+    return { projectId: null, projectName: '' };
+  }
+
+  if (projectId === 'new') {
+    const number = (body.new_project_number || '').trim();
+    const name = (body.new_project_name || '').trim();
+    if (!number || !name) {
+      return { error: 'Enter both a project number and name to add a new project, or choose an existing one.' };
+    }
+    const project = models.findOrCreateProject({ number, name }, userId);
+    return { projectId: project.id, projectName: `${project.number} - ${project.name}` };
+  }
+
+  const project = models.getProjectById(Number(projectId));
+  if (!project) {
+    return { error: 'That project no longer exists — please choose another.' };
+  }
+  return { projectId: project.id, projectName: `${project.number} - ${project.name}` };
+}
 
 router.post('/:id/edit', (req, res) => {
   const receipt = models.getReceiptById(Number(req.params.id));
@@ -307,26 +347,38 @@ router.post('/:id/edit', (req, res) => {
     return res.status(400).render('error', { message: 'This receipt belongs to a submitted report and can no longer be edited. Reopen the report first.' });
   }
 
-  const { receipt_date, total, project_name, gl_code, notes, description, expense_category, queue, queue_total: queueTotal } = req.body;
+  const { receipt_date, total, gl_code, notes, description, expense_category, queue, queue_total: queueTotal } = req.body;
   const parsedTotal = parseFloat(total);
-  if (Number.isNaN(parsedTotal) || parsedTotal < 0) {
+
+  const rerenderWithError = (error) => {
     const remaining = (queue || '').split(',').filter(Boolean);
     return res.status(400).render('receipt-edit', {
       receipt,
-      error: 'Please enter a valid total amount.',
+      error,
       returnTo: req.body.return_to === 'report' ? 'report' : 'inbox',
       expenseCategories: EXPENSE_CATEGORIES,
+      projects: models.listProjects(),
       queue: queue || '',
       queueTotal: Number(queueTotal) || 0,
       queuePosition: Number(queueTotal) > 0 ? Number(queueTotal) - remaining.length : 0,
     });
+  };
+
+  if (Number.isNaN(parsedTotal) || parsedTotal < 0) {
+    return rerenderWithError('Please enter a valid total amount.');
+  }
+
+  const project = resolveProject(req.body, req.user.id, receipt);
+  if (project.error) {
+    return rerenderWithError(project.error);
   }
 
   models.updateReceipt({
     id: receipt.id,
     receipt_date: receipt_date || null,
     total: parsedTotal,
-    project_name: (project_name || '').trim(),
+    project_id: project.projectId,
+    project_name: project.projectName,
     gl_code: (gl_code || '').trim(),
     notes: (notes || '').trim(),
     description: (description || '').trim(),

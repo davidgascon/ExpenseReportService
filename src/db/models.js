@@ -192,6 +192,35 @@ function deleteReport(id) {
   return deleteReportStmt.run(id);
 }
 
+// ---------- Projects (shared across every user) ----------
+
+const listProjectsStmt = db.prepare('SELECT * FROM projects ORDER BY number ASC');
+
+function listProjects() {
+  return listProjectsStmt.all();
+}
+
+const getProjectByIdStmt = db.prepare('SELECT * FROM projects WHERE id = ?');
+
+function getProjectById(id) {
+  return getProjectByIdStmt.get(id);
+}
+
+const getProjectByNumberStmt = db.prepare('SELECT * FROM projects WHERE number = ?');
+const insertProjectStmt = db.prepare('INSERT INTO projects (number, name) VALUES (@number, @name)');
+
+// If a project with this number already exists, reuses it as-is (even if
+// the name typed this time differs) rather than creating a duplicate or
+// silently renaming a project everyone else already sees - see the UNIQUE
+// index on projects.number.
+function findOrCreateProject({ number, name }, userId) {
+  const existing = getProjectByNumberStmt.get(number);
+  if (existing) return existing;
+  const info = insertProjectStmt.run({ number, name });
+  logActivity(userId, 'project_created', `${number} - ${name}`);
+  return getProjectByIdStmt.get(info.lastInsertRowid);
+}
+
 // ---------- Receipts ----------
 // Receipts belong to a user directly and sit unassigned (report_id IS NULL)
 // in the user's personal "inbox" until checked off to join a specific report.
@@ -199,13 +228,15 @@ function deleteReport(id) {
 const DEFAULT_DESCRIPTION = 'Project Lunch: ';
 
 const insertReceiptStmt = db.prepare(`
-  INSERT INTO receipts (user_id, report_id, filename, original_name, receipt_date, total, project_name, gl_code, notes, description, expense_category)
-  VALUES (@user_id, @report_id, @filename, @original_name, @receipt_date, @total, @project_name, @gl_code, @notes, @description, @expense_category)
+  INSERT INTO receipts (user_id, report_id, filename, original_name, receipt_date, total, project_id, project_name, gl_code, notes, description, expense_category)
+  VALUES (@user_id, @report_id, @filename, @original_name, @receipt_date, @total, @project_id, @project_name, @gl_code, @notes, @description, @expense_category)
 `);
 
 function createReceipt(data) {
   const info = insertReceiptStmt.run({
     report_id: null,
+    project_id: null,
+    project_name: '',
     gl_code: '',
     description: DEFAULT_DESCRIPTION,
     expense_category: DEFAULT_EXPENSE_CATEGORY,
@@ -237,7 +268,7 @@ function listUnassignedReceiptsForUser(userId) {
 }
 
 const updateReceiptStmt = db.prepare(`
-  UPDATE receipts SET receipt_date = @receipt_date, total = @total, project_name = @project_name, gl_code = @gl_code, notes = @notes, description = @description, expense_category = @expense_category
+  UPDATE receipts SET receipt_date = @receipt_date, total = @total, project_id = @project_id, project_name = @project_name, gl_code = @gl_code, notes = @notes, description = @description, expense_category = @expense_category
   WHERE id = @id
 `);
 
@@ -419,6 +450,9 @@ module.exports = {
   reopenReport,
   markReportPaid,
   deleteReport,
+  listProjects,
+  getProjectById,
+  findOrCreateProject,
   createReceipt,
   getReceiptById,
   listReceiptsForReport,

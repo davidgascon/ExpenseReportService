@@ -82,6 +82,19 @@ db.exec(`
     updated_at TEXT
   );
   INSERT OR IGNORE INTO broadcast_message (id, message) VALUES (1, '');
+
+  -- Shared across every user (not per-user like reports/receipts) - anyone
+  -- adding a project from the receipt-edit page makes it available in
+  -- everyone else's project dropdown too. The UNIQUE index means "add a new
+  -- project" with a number that already exists just reuses that row instead
+  -- of creating a duplicate.
+  CREATE TABLE IF NOT EXISTS projects (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    number TEXT NOT NULL,
+    name TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_projects_number ON projects(number);
 `);
 
 // ---------- Lightweight migrations ----------
@@ -140,6 +153,15 @@ if (columnNames('receipts').includes('ocr_raw_text')) {
 // this is a no-op for every receipt already in the database.
 if (!columnNames('receipts').includes('expense_category')) {
   db.exec("ALTER TABLE receipts ADD COLUMN expense_category TEXT NOT NULL DEFAULT 'local_entertainment'");
+}
+
+// Links a receipt to a row in the shared projects table (see the CREATE
+// TABLE above). project_name is kept as-is alongside this - it's still what
+// every existing view displays, just now populated from the linked
+// project ("<number> - <name>") instead of typed freehand, so nothing else
+// needs to change to show it.
+if (!columnNames('receipts').includes('project_id')) {
+  db.exec('ALTER TABLE receipts ADD COLUMN project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL');
 }
 
 // Employee # and Department are now per-user, editable fields (used to

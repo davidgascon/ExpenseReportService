@@ -42,10 +42,43 @@
           <% }); %>
         </div>
 
-        <label for="project_name">Project name/number <span class="field-hint" style="display:inline;">(just for your own reference — not used on the exported spreadsheet)</span></label>
-        <input type="text" id="project_name" name="project_name" value="<%= receipt.project_name || '' %>" placeholder="e.g. Downtown Chiller Retrofit">
+        <label for="project_id">Project <span class="field-hint" style="display:inline;">(shared list — picking one fills in a default GL code below; not itself used on the exported spreadsheet)</span></label>
+        <select id="project_id" name="project_id" style="width:100%;">
+          <option value="">— No project —</option>
+          <% projects.forEach(function(p) { %>
+            <option value="<%= p.id %>" data-number="<%= p.number %>" <%= receipt.project_id === p.id ? 'selected' : '' %>><%= p.number %> - <%= p.name %></option>
+          <% }); %>
+          <option value="new">+ Add a new project…</option>
+        </select>
+        <% if (!receipt.project_id && receipt.project_name) { %>
+          <p class="field-hint">Previously entered: "<%= receipt.project_name %>" — kept as-is unless you pick a project above.</p>
+        <% } %>
 
-        <label for="gl_code">GL code <span class="field-hint" style="display:inline;">(this is what gets put on the exported spreadsheet)</span></label>
+        <div id="newProjectFields" class="new-project-fields">
+          <label for="new_project_number">New project number</label>
+          <input type="text" id="new_project_number" name="new_project_number" placeholder="e.g. 86259065">
+
+          <label for="new_project_name">New project name</label>
+          <input type="text" id="new_project_name" name="new_project_name" placeholder="e.g. Kokusai">
+        </div>
+
+        <label for="gl_code" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          GL code <span class="field-hint" style="display:inline;">(this is what gets put on the exported spreadsheet)</span>
+          <button type="button" id="glInfoBtn" class="gl-info-btn" aria-label="GL code format info" title="GL code format info">ⓘ</button>
+        </label>
+        <div id="glInfoBox" class="gl-info-box">
+          <p><strong>Format:</strong> Project Number - Geo Code - Department - Category</p>
+          <p class="small muted">Geo Code is typically <strong>000</strong>.</p>
+          <p class="small muted" style="margin-bottom:4px;">Category:</p>
+          <ul class="gl-category-list">
+            <li><strong>00</strong> — Labor</li>
+            <li><strong>60</strong> — Material costs</li>
+            <li><strong>61</strong> — Small tools/consumables</li>
+            <li><strong>65</strong> — Equipment</li>
+            <li><strong>86</strong> — Parking/mileage</li>
+            <li><strong>90</strong> — Other costs</li>
+          </ul>
+        </div>
         <input type="text" id="gl_code" name="gl_code" value="<%= receipt.gl_code || '' %>" placeholder="e.g. 86259049-000-95-90">
 
         <label for="description">Description <span class="field-hint" style="display:inline;">(this is what gets put on the exported spreadsheet)</span></label>
@@ -64,6 +97,7 @@
   <%- include('partials/footer') %>
   <script src="/js/theme.js"></script>
   <script src="/js/filePreview.js"></script>
+  <script src="/js/receiptEdit.js"></script>
   <% if (!receipt.receipt_date) { %>
     <script>
       // A receipt with no date yet has never been through this form before
