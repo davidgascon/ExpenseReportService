@@ -2,7 +2,19 @@
 // to the highlights a user would actually notice, not every file touched.
 // CHANGELOG[0].version is the single source of truth for the version number
 // shown in the footer, so bump it here whenever a new entry is added.
+// Versioning is two-digit (major.minor, no patch digit) from 2.4 onward -
+// picks up where the old three-digit scheme (...1.2.3) left off by
+// dropping the leading "1.".
 const CHANGELOG = [
+  {
+    version: '2.4',
+    date: '2026-09-18',
+    highlights: [
+      'Projects are now a shared list everyone can add to and pick from, instead of a free-text field per receipt',
+      'Selecting a project fills in a default GL code (its number + "-000-95-90"), which you can still edit freely',
+      'Added an info button next to GL code explaining the cost-code format and category numbers',
+    ],
+  },
   {
     version: '1.2.3',
     date: '2026-08-31',
