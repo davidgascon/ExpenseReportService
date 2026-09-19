@@ -69,6 +69,10 @@
           <div class="stat-num"><%= totals.receipts %></div>
           <div class="stat-label">Receipts</div>
         </div>
+        <div class="stat-box">
+          <div class="stat-num">$<%= totals.receiptsTotal.toFixed(2) %></div>
+          <div class="stat-label">Total uploaded</div>
+        </div>
         <% actionCounts.forEach(function(a) { %>
           <div class="stat-box">
             <div class="stat-num"><%= a.n %></div>

@@ -395,19 +395,20 @@ const totalsStmt = {
       SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) AS paid
     FROM reports
   `),
-  receipts: db.prepare('SELECT COUNT(*) AS n FROM receipts'),
+  receipts: db.prepare('SELECT COUNT(*) AS n, COALESCE(SUM(total), 0) AS total_amount FROM receipts'),
 };
 
 function getOverallTotals() {
   const users = totalsStmt.users.get().n;
   const reportRow = totalsStmt.reports.get();
-  const receipts = totalsStmt.receipts.get().n;
+  const receiptsRow = totalsStmt.receipts.get();
   return {
     users,
     reports: reportRow.n,
     reportsSubmitted: reportRow.submitted || 0,
     reportsPaid: reportRow.paid || 0,
-    receipts,
+    receipts: receiptsRow.n,
+    receiptsTotal: receiptsRow.total_amount,
   };
 }
 
