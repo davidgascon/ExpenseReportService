@@ -127,15 +127,32 @@ async function verifyAndFinalizeUpload(filePath) {
 // into the actual pixels once at upload time fixes that everywhere (the
 // "View file" link and the PDF export) instead of just one of them.
 //
+// This also downscales the stored file - a receipt is a photo of printed
+// text, not something that needs a modern phone's full 12MP+ resolution,
+// and re-encoding at full size is genuinely slow/memory-heavy on a small
+// VM (this app has previously run on as little as 4GB RAM). Capping it
+// here also means every later read of this same file - "View file", PDF
+// export, the report page - stays cheaper too, not just the upload itself.
+//
 // This also happens to be where EXIF/metadata gets stripped: sharp only
 // keeps a source image's metadata (EXIF, GPS location tags, etc.) if
 // .withMetadata() is called, which this never does - so re-encoding through
 // sharp here doubles as scrubbing anything a phone silently embedded in the
 // original photo, for every image that passes through this function.
+const MAX_STORED_IMAGE_DIMENSION = 2000;
+
 async function normalizeImageOrientation(filePath) {
   if (!sharp) return; // sharp unavailable in this environment — skip, not fatal
-  const rotated = await sharp(filePath).rotate().toBuffer();
-  fs.writeFileSync(filePath, rotated);
+  const resized = await sharp(filePath)
+    .rotate()
+    .resize({
+      width: MAX_STORED_IMAGE_DIMENSION,
+      height: MAX_STORED_IMAGE_DIMENSION,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .toBuffer();
+  fs.writeFileSync(filePath, resized);
 }
 
 // Egg: a 1-in-20 chance of a different empty-state line instead of the

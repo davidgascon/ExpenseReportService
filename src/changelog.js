@@ -7,6 +7,14 @@
 // dropping the leading "1.".
 const CHANGELOG = [
   {
+    version: '2.5',
+    date: '2026-09-18',
+    highlights: [
+      'Uploaded photos are now capped at 2000px on their longest side (previously stored at full phone-camera resolution) - faster uploads and lighter on RAM on smaller servers',
+      'Admin dashboard now shows the total dollar amount across every uploaded receipt',
+    ],
+  },
+  {
     version: '2.4',
     date: '2026-09-18',
     highlights: [
