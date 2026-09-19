@@ -7,6 +7,13 @@
 // dropping the leading "1.".
 const CHANGELOG = [
   {
+    version: '2.7',
+    date: '2026-09-18',
+    highlights: [
+      'A receipt linked to a project can no longer end up with a blank GL code - defaults to "<project number>-000-95-90" both when saving and when opening an older receipt that\'s missing one',
+    ],
+  },
+  {
     version: '2.6',
     date: '2026-09-18',
     highlights: [

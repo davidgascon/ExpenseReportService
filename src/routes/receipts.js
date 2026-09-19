@@ -297,6 +297,16 @@ router.get('/:id/edit', (req, res) => {
   if (!canEditReceipt(receipt)) {
     return res.status(400).render('error', { message: 'This receipt belongs to a submitted report and can no longer be edited. Reopen the report first.' });
   }
+
+  // A receipt already linked to a project but with no GL code typed yet
+  // (an older receipt from before this default existed, or one where the
+  // project was picked without JS running) - show the same default the
+  // picker would auto-fill, rather than a blank field.
+  if (!receipt.gl_code && receipt.project_id) {
+    const linkedProject = models.getProjectById(receipt.project_id);
+    if (linkedProject) receipt.gl_code = defaultGlCode(linkedProject.number);
+  }
+
   // ?queue= carries the ids still waiting after this one, right after a
   // multi-file upload (see /scan above); ?total= is the fixed size of that
   // whole batch, used only to show "Receipt 2 of 4" - it doesn't shrink as
@@ -316,13 +326,22 @@ router.get('/:id/edit', (req, res) => {
   });
 });
 
+// Same default the client-side auto-fill in receiptEdit.js uses - kept here
+// too as a server-side fallback (see resolveProject/GET :id/edit below) so
+// a receipt linked to a project can never end up with a genuinely blank GL
+// code, regardless of how it got into that state (an older receipt from
+// before this default existed, JS not running, etc.).
+function defaultGlCode(projectNumber) {
+  return `${projectNumber}-000-95-90`;
+}
+
 // Resolves the submitted project_id field to an actual project id (or null
 // for "no project"): "new" means the two new_project_* fields describe a
 // project to find-or-create first, matching an existing number rather than
 // creating a duplicate (see models.findOrCreateProject). Returns
-// { projectId, projectName, error } - projectName is the denormalized
-// "<number> - <name>" string every other view already expects in
-// receipts.project_name.
+// { projectId, projectName, projectNumber, error } - projectName is the
+// denormalized "<number> - <name>" string every other view already expects
+// in receipts.project_name.
 function resolveProject(body, userId, existingReceipt) {
   const projectId = (body.project_id || '').trim();
 
@@ -345,14 +364,14 @@ function resolveProject(body, userId, existingReceipt) {
       return { error: 'Enter both a project number and name to add a new project, or choose an existing one.' };
     }
     const project = models.findOrCreateProject({ number, name }, userId);
-    return { projectId: project.id, projectName: `${project.number} - ${project.name}` };
+    return { projectId: project.id, projectName: `${project.number} - ${project.name}`, projectNumber: project.number };
   }
 
   const project = models.getProjectById(Number(projectId));
   if (!project) {
     return { error: 'That project no longer exists — please choose another.' };
   }
-  return { projectId: project.id, projectName: `${project.number} - ${project.name}` };
+  return { projectId: project.id, projectName: `${project.number} - ${project.name}`, projectNumber: project.number };
 }
 
 router.post('/:id/edit', (req, res) => {
@@ -390,13 +409,20 @@ router.post('/:id/edit', (req, res) => {
     return rerenderWithError(project.error);
   }
 
+  // If a project is linked but no GL code was actually typed, fall back to
+  // the same default the project picker auto-fills on the client - so a
+  // linked receipt never ends up with a genuinely blank GL code, even if
+  // the auto-fill JS never ran for some reason.
+  const trimmedGlCode = (gl_code || '').trim();
+  const finalGlCode = !trimmedGlCode && project.projectNumber ? defaultGlCode(project.projectNumber) : trimmedGlCode;
+
   models.updateReceipt({
     id: receipt.id,
     receipt_date: receipt_date || null,
     total: parsedTotal,
     project_id: project.projectId,
     project_name: project.projectName,
-    gl_code: (gl_code || '').trim(),
+    gl_code: finalGlCode,
     notes: (notes || '').trim(),
     description: (description || '').trim(),
     expense_category: EXPENSE_CATEGORY_KEYS.includes(expense_category) ? expense_category : DEFAULT_EXPENSE_CATEGORY,
