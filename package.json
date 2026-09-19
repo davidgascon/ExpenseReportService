@@ -1,6 +1,6 @@
 {
   "name": "expense-report-service",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "Self-hosted multi-user expense report and receipt tracking service",
   "main": "server.js",
   "private": true,

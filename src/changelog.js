@@ -7,6 +7,13 @@
 // dropping the leading "1.".
 const CHANGELOG = [
   {
+    version: '2.6',
+    date: '2026-09-18',
+    highlights: [
+      'Fix: the default GL code now also fills in while typing a brand-new project\'s number, not just when picking an existing one from the dropdown',
+    ],
+  },
+  {
     version: '2.5',
     date: '2026-09-18',
     highlights: [
