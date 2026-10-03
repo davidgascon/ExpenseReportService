@@ -187,6 +187,26 @@ if (!columnNames('users').includes('email')) {
   db.exec("ALTER TABLE users ADD COLUMN email TEXT NOT NULL DEFAULT ''");
 }
 
+// Per-user override for the description every new receipt pre-fills with -
+// blank means "use the app-wide default" (models.DEFAULT_DESCRIPTION,
+// 'Project Lunch: '), so nobody's existing receipts or workflow change just
+// because this column now exists. Added for people whose expenses (e.g.
+// sales) aren't typically "Project Lunch" at all.
+if (!columnNames('users').includes('default_description')) {
+  db.exec("ALTER TABLE users ADD COLUMN default_description TEXT NOT NULL DEFAULT ''");
+}
+
+// Lets a shared project entry carry its own exact GL code instead of having
+// one derived from its number (see the "-000-95-90" suffix in
+// src/routes/receipts.js's defaultGlCode()). For someone who codes expenses
+// straight to a GL code that isn't really a project number at all (e.g.
+// sales), this lets them add a "project" to the shared list that's really
+// just a shortcut to their GL code, without it being forced through the
+// numbered-project suffix pattern. Blank means "derive it the old way."
+if (!columnNames('projects').includes('gl_code_override')) {
+  db.exec("ALTER TABLE projects ADD COLUMN gl_code_override TEXT NOT NULL DEFAULT ''");
+}
+
 // New registrations now require admin approval before they can log in.
 // Critical detail: this ADD COLUMN's DEFAULT is 1 (approved), not 0 -
 // specifically so that everyone who already has an account on an existing

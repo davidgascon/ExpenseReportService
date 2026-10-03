@@ -227,6 +227,7 @@ router.post('/scan', (req, res) => {
         project_name: '',
         gl_code: '',
         notes: '',
+        description: req.user.default_description || models.DEFAULT_DESCRIPTION,
       });
 
       models.logActivity(req.user.id, 'receipt_upload', file.originalname);
@@ -301,10 +302,14 @@ router.get('/:id/edit', (req, res) => {
   // A receipt already linked to a project but with no GL code typed yet
   // (an older receipt from before this default existed, or one where the
   // project was picked without JS running) - show the same default the
-  // picker would auto-fill, rather than a blank field.
+  // picker would auto-fill, rather than a blank field. A project with its
+  // own gl_code_override (see findOrCreateProject) uses that exact value
+  // verbatim instead of the derived "<number>-000-95-90" - see the project's
+  // own doc comment for why (e.g. a sales GL code that isn't a project
+  // number at all).
   if (!receipt.gl_code && receipt.project_id) {
     const linkedProject = models.getProjectById(receipt.project_id);
-    if (linkedProject) receipt.gl_code = defaultGlCode(linkedProject.number);
+    if (linkedProject) receipt.gl_code = linkedProject.gl_code_override || defaultGlCode(linkedProject.number);
   }
 
   // ?queue= carries the ids still waiting after this one, right after a
@@ -336,12 +341,13 @@ function defaultGlCode(projectNumber) {
 }
 
 // Resolves the submitted project_id field to an actual project id (or null
-// for "no project"): "new" means the two new_project_* fields describe a
-// project to find-or-create first, matching an existing number rather than
-// creating a duplicate (see models.findOrCreateProject). Returns
-// { projectId, projectName, projectNumber, error } - projectName is the
-// denormalized "<number> - <name>" string every other view already expects
-// in receipts.project_name.
+// for "no project"): "new" means the new_project_* fields describe a
+// project (or a direct-GL-code shortcut - see new_project_gl_code below) to
+// find-or-create first, matching an existing number rather than creating a
+// duplicate (see models.findOrCreateProject). Returns
+// { projectId, projectName, projectNumber, projectGlCodeOverride, error } -
+// projectName is the denormalized "<number> - <name>" string every other
+// view already expects in receipts.project_name.
 function resolveProject(body, userId, existingReceipt) {
   const projectId = (body.project_id || '').trim();
 
@@ -360,18 +366,29 @@ function resolveProject(body, userId, existingReceipt) {
   if (projectId === 'new') {
     const number = (body.new_project_number || '').trim();
     const name = (body.new_project_name || '').trim();
+    const glCodeOverride = (body.new_project_gl_code || '').trim();
     if (!number || !name) {
-      return { error: 'Enter both a project number and name to add a new project, or choose an existing one.' };
+      return { error: 'Enter both a project number (or GL code) and a name to add a new entry, or choose an existing one.' };
     }
-    const project = models.findOrCreateProject({ number, name }, userId);
-    return { projectId: project.id, projectName: `${project.number} - ${project.name}`, projectNumber: project.number };
+    const project = models.findOrCreateProject({ number, name, gl_code_override: glCodeOverride }, userId);
+    return {
+      projectId: project.id,
+      projectName: `${project.number} - ${project.name}`,
+      projectNumber: project.number,
+      projectGlCodeOverride: project.gl_code_override,
+    };
   }
 
   const project = models.getProjectById(Number(projectId));
   if (!project) {
     return { error: 'That project no longer exists — please choose another.' };
   }
-  return { projectId: project.id, projectName: `${project.number} - ${project.name}`, projectNumber: project.number };
+  return {
+    projectId: project.id,
+    projectName: `${project.number} - ${project.name}`,
+    projectNumber: project.number,
+    projectGlCodeOverride: project.gl_code_override,
+  };
 }
 
 router.post('/:id/edit', (req, res) => {
@@ -412,9 +429,13 @@ router.post('/:id/edit', (req, res) => {
   // If a project is linked but no GL code was actually typed, fall back to
   // the same default the project picker auto-fills on the client - so a
   // linked receipt never ends up with a genuinely blank GL code, even if
-  // the auto-fill JS never ran for some reason.
+  // the auto-fill JS never ran for some reason. A project with its own
+  // gl_code_override (a direct-GL-code shortcut, not a real project number)
+  // uses that exact value instead of the derived "<number>-000-95-90".
   const trimmedGlCode = (gl_code || '').trim();
-  const finalGlCode = !trimmedGlCode && project.projectNumber ? defaultGlCode(project.projectNumber) : trimmedGlCode;
+  const finalGlCode = !trimmedGlCode && project.projectNumber
+    ? (project.projectGlCodeOverride || defaultGlCode(project.projectNumber))
+    : trimmedGlCode;
 
   models.updateReceipt({
     id: receipt.id,

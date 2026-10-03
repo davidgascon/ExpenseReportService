@@ -19,6 +19,13 @@ router.post('/profile', (req, res) => {
     employee_number: (req.body.employee_number || '').trim(),
     department: (req.body.department || '').trim(),
     supervisor: (req.body.supervisor || '').trim(),
+    // Deliberately NOT trimmed, unlike the fields above: a trailing space
+    // (e.g. "Sales Expense: ") is likely intentional, matching the built-in
+    // app default ('Project Lunch: ') which also ends in a space for
+    // whatever gets typed next - trimming it here would silently strip that
+    // every time someone saves their account page. Only strips leading/
+    // trailing newlines a browser might add, not meaningful inner spacing.
+    default_description: (req.body.default_description || '').replace(/^\n+|\n+$/g, ''),
   });
   // attachUser already ran (and set req.user/res.locals.currentUser) before
   // this handler, using the pre-update row - refresh both here too, or the

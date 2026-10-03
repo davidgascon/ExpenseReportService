@@ -7,6 +7,14 @@
 // dropping the leading "1.".
 const CHANGELOG = [
   {
+    version: '2.8',
+    date: '2026-10-03',
+    highlights: [
+      'Added a personal default description (Account page) - pre-fills new receipts with your own text instead of everyone sharing "Project Lunch: "',
+      'A Project / GL Code list entry can now carry its own exact GL code instead of one derived from a project number - for expenses (e.g. sales) that code straight to a GL code rather than a real project',
+    ],
+  },
+  {
     version: '2.7',
     date: '2026-09-18',
     highlights: [

@@ -50,9 +50,10 @@ function updateDisplayName(id, displayName) {
 // Employee # and Department feed the exported spreadsheet's header (see
 // excelExport.js) - each person sets their own from their Account page
 // instead of everyone sharing whatever was baked into David's original
-// template file.
+// template file. default_description is purely personal (see
+// DEFAULT_DESCRIPTION below) and never touches the export.
 const updateProfileStmt = db.prepare(`
-  UPDATE users SET display_name = @display_name, employee_number = @employee_number, department = @department, supervisor = @supervisor
+  UPDATE users SET display_name = @display_name, employee_number = @employee_number, department = @department, supervisor = @supervisor, default_description = @default_description
   WHERE id = @id
 `);
 
@@ -207,16 +208,22 @@ function getProjectById(id) {
 }
 
 const getProjectByNumberStmt = db.prepare('SELECT * FROM projects WHERE number = ?');
-const insertProjectStmt = db.prepare('INSERT INTO projects (number, name) VALUES (@number, @name)');
+const insertProjectStmt = db.prepare(
+  'INSERT INTO projects (number, name, gl_code_override) VALUES (@number, @name, @gl_code_override)',
+);
 
 // If a project with this number already exists, reuses it as-is (even if
-// the name typed this time differs) rather than creating a duplicate or
-// silently renaming a project everyone else already sees - see the UNIQUE
-// index on projects.number.
-function findOrCreateProject({ number, name }, userId) {
+// the name or GL code override typed this time differs) rather than
+// creating a duplicate or silently renaming/re-coding a project everyone
+// else already sees - see the UNIQUE index on projects.number.
+// gl_code_override is optional: leave it blank for a real project (its GL
+// code keeps being derived from its number), or set it for an entry that's
+// really just a shortcut to a specific GL code (e.g. a sales code that
+// isn't a project number at all) - see src/routes/receipts.js.
+function findOrCreateProject({ number, name, gl_code_override }, userId) {
   const existing = getProjectByNumberStmt.get(number);
   if (existing) return existing;
-  const info = insertProjectStmt.run({ number, name });
+  const info = insertProjectStmt.run({ number, name, gl_code_override: gl_code_override || '' });
   logActivity(userId, 'project_created', `${number} - ${name}`);
   return getProjectByIdStmt.get(info.lastInsertRowid);
 }
@@ -430,6 +437,7 @@ function setBroadcastMessage(message) {
 }
 
 module.exports = {
+  DEFAULT_DESCRIPTION,
   insertUser,
   findUserByUsername,
   getUserById,
