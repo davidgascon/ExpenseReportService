@@ -34,11 +34,8 @@
         <label for="department">Department <span class="field-hint" style="display:inline;">(used on the exported spreadsheet)</span></label>
         <input type="text" id="department" name="department" value="<%= currentUser.department || '' %>" placeholder="e.g. 86 - Controls Specialist">
 
-        <label for="supervisor">Your supervisor <span class="field-hint" style="display:inline;">(used on the exported spreadsheet, under "Approved By")</span></label>
-        <input type="text" id="supervisor" name="supervisor" value="<%= currentUser.supervisor || '' %>" placeholder="e.g. Jane Smith">
-
         <label for="default_description">Default description <span class="field-hint" style="display:inline;">(pre-fills new receipts — never used on the exported spreadsheet)</span></label>
-        <input type="text" id="default_description" name="default_description" value="<%= currentUser.default_description || '' %>" placeholder="Leave blank to use the app default, &quot;Project Lunch: &quot;">
+        <input type="text" id="default_description" name="default_description" value="<%= currentUser.default_description || '' %>" placeholder="Leave blank to use the app default, &quot;Project Lunch&quot;">
 
         <div class="actions-row">
           <button type="submit">Save Info</button>

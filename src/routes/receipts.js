@@ -400,7 +400,7 @@ router.post('/:id/edit', (req, res) => {
     return res.status(400).render('error', { message: 'This receipt belongs to a submitted report and can no longer be edited. Reopen the report first.' });
   }
 
-  const { receipt_date, total, gl_code, notes, description, expense_category, queue, queue_total: queueTotal } = req.body;
+  const { receipt_date, total, gl_code, notes, description, customer_names, company_names, venue, expense_category, queue, queue_total: queueTotal } = req.body;
   const parsedTotal = parseFloat(total);
 
   const rerenderWithError = (error) => {
@@ -446,6 +446,9 @@ router.post('/:id/edit', (req, res) => {
     gl_code: finalGlCode,
     notes: (notes || '').trim(),
     description: (description || '').trim(),
+    customer_names: (customer_names || '').trim(),
+    company_names: (company_names || '').trim(),
+    venue: (venue || '').trim(),
     expense_category: EXPENSE_CATEGORY_KEYS.includes(expense_category) ? expense_category : DEFAULT_EXPENSE_CATEGORY,
   });
 

@@ -51,7 +51,7 @@ db.exec(`
     project_name TEXT NOT NULL DEFAULT '',
     gl_code TEXT NOT NULL DEFAULT '',
     notes TEXT NOT NULL DEFAULT '',
-    description TEXT NOT NULL DEFAULT 'Project Lunch: ',
+    description TEXT NOT NULL DEFAULT 'Project Lunch',
     expense_category TEXT NOT NULL DEFAULT 'local_entertainment',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
@@ -117,15 +117,15 @@ if (!columnNames('receipts').includes('gl_code')) {
 // must run before the table-rebuild migrations below so their explicit
 // column lists can already assume it exists.
 if (!columnNames('receipts').includes('description')) {
-  db.exec("ALTER TABLE receipts ADD COLUMN description TEXT NOT NULL DEFAULT 'Project Lunch: '");
+  db.exec("ALTER TABLE receipts ADD COLUMN description TEXT NOT NULL DEFAULT 'Project Lunch'");
 }
 
 // The default description text was originally a longer placeholder
 // ("Project Lunch: (list who attended)") before being shortened to just
-// "Project Lunch: " per explicit request. Backfill any receipt that still
-// has the old default text untouched - if someone already customized
+// "Project Lunch: " per explicit request (and later to "Project Lunch"). Backfill any receipt that still
+// has the original long default text untouched - if someone already customized
 // their description, it won't match this exact string and is left alone.
-db.prepare("UPDATE receipts SET description = 'Project Lunch: ' WHERE description = 'Project Lunch: (list who attended)'").run();
+db.prepare("UPDATE receipts SET description = 'Project Lunch' WHERE description = 'Project Lunch: (list who attended)'").run();
 
 // The separate "Attendees" field was dropped per explicit request - who
 // attended now just goes in the free-form Description field instead. SQLite
@@ -189,7 +189,7 @@ if (!columnNames('users').includes('email')) {
 
 // Per-user override for the description every new receipt pre-fills with -
 // blank means "use the app-wide default" (models.DEFAULT_DESCRIPTION,
-// 'Project Lunch: '), so nobody's existing receipts or workflow change just
+// 'Project Lunch'), so nobody's existing receipts or workflow change just
 // because this column now exists. Added for people whose expenses (e.g.
 // sales) aren't typically "Project Lunch" at all.
 if (!columnNames('users').includes('default_description')) {
@@ -273,7 +273,7 @@ if (reportsTableDef && !reportsTableDef.sql.includes("'paid'")) {
       gl_code TEXT NOT NULL DEFAULT '',
       attendees TEXT NOT NULL DEFAULT '',
       notes TEXT NOT NULL DEFAULT '',
-      description TEXT NOT NULL DEFAULT 'Project Lunch: ',
+      description TEXT NOT NULL DEFAULT 'Project Lunch',
       ocr_raw_text TEXT,
       ocr_status TEXT NOT NULL DEFAULT 'done' CHECK (ocr_status IN ('pending', 'done')),
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -315,7 +315,7 @@ if (receiptsTableDef && receiptsTableDef.sql.includes('reports_pre_paid_status')
       gl_code TEXT NOT NULL DEFAULT '',
       attendees TEXT NOT NULL DEFAULT '',
       notes TEXT NOT NULL DEFAULT '',
-      description TEXT NOT NULL DEFAULT 'Project Lunch: ',
+      description TEXT NOT NULL DEFAULT 'Project Lunch',
       ocr_raw_text TEXT,
       ocr_status TEXT NOT NULL DEFAULT 'done' CHECK (ocr_status IN ('pending', 'done')),
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -328,6 +328,18 @@ if (receiptsTableDef && receiptsTableDef.sql.includes('reports_pre_paid_status')
     COMMIT;
   `);
   db.pragma('foreign_keys = ON');
+}
+
+// The company's expense report template (2026-10) added three free-text
+// columns beside WHAT: Customer name(s), Company(ies), and Where (the venue).
+// All optional; existing receipts simply get blanks. Deliberately placed
+// AFTER the legacy table-rebuild migrations above - those recreate `receipts`
+// from a fixed column list, so anything added before them would be dropped
+// on an install that still had to run one.
+for (const col of ['customer_names', 'company_names', 'venue']) {
+  if (!columnNames('receipts').includes(col)) {
+    db.exec(`ALTER TABLE receipts ADD COLUMN ${col} TEXT NOT NULL DEFAULT ''`);
+  }
 }
 
 // If nobody is marked admin yet (fresh install just got its first user via

@@ -85,8 +85,17 @@
         </div>
         <input type="text" id="gl_code" name="gl_code" value="<%= receipt.gl_code || '' %>" placeholder="e.g. 86259049-000-95-90">
 
-        <label for="description">Description <span class="field-hint" style="display:inline;">(this is what gets put on the exported spreadsheet)</span></label>
-        <input type="text" id="description" name="description" value="<%= receipt.description || '' %>" placeholder="Project Lunch: (list who attended)">
+        <label for="description">What <span class="field-hint" style="display:inline;">(the "WHAT" column on the exported spreadsheet — e.g. Project Lunch, Training Course)</span></label>
+        <input type="text" id="description" name="description" value="<%= receipt.description || '' %>" placeholder="e.g. Project Lunch">
+
+        <label for="customer_names">Customer name(s) <span class="field-hint" style="display:inline;">(optional — exported in the "Customer Name(s)" column)</span></label>
+        <input type="text" id="customer_names" name="customer_names" value="<%= receipt.customer_names || '' %>" placeholder="e.g. Jane Smith, Bob Lee">
+
+        <label for="company_names">Company(ies) <span class="field-hint" style="display:inline;">(optional — exported in the "Company(ies)" column)</span></label>
+        <input type="text" id="company_names" name="company_names" value="<%= receipt.company_names || '' %>" placeholder="e.g. Acme Corp">
+
+        <label for="venue">Where <span class="field-hint" style="display:inline;">(optional — restaurant, venue or location; exported in the "WHERE" column)</span></label>
+        <input type="text" id="venue" name="venue" value="<%= receipt.venue || '' %>" placeholder="e.g. Olive Garden, Portland">
 
         <label for="notes">Notes</label>
         <textarea id="notes" name="notes" placeholder="Purpose of the expense, client name, etc."><%= receipt.notes || '' %></textarea>

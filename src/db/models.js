@@ -53,7 +53,7 @@ function updateDisplayName(id, displayName) {
 // template file. default_description is purely personal (see
 // DEFAULT_DESCRIPTION below) and never touches the export.
 const updateProfileStmt = db.prepare(`
-  UPDATE users SET display_name = @display_name, employee_number = @employee_number, department = @department, supervisor = @supervisor, default_description = @default_description
+  UPDATE users SET display_name = @display_name, employee_number = @employee_number, department = @department, default_description = @default_description
   WHERE id = @id
 `);
 
@@ -232,11 +232,11 @@ function findOrCreateProject({ number, name, gl_code_override }, userId) {
 // Receipts belong to a user directly and sit unassigned (report_id IS NULL)
 // in the user's personal "inbox" until checked off to join a specific report.
 
-const DEFAULT_DESCRIPTION = 'Project Lunch: ';
+const DEFAULT_DESCRIPTION = 'Project Lunch';
 
 const insertReceiptStmt = db.prepare(`
-  INSERT INTO receipts (user_id, report_id, filename, original_name, receipt_date, total, project_id, project_name, gl_code, notes, description, expense_category)
-  VALUES (@user_id, @report_id, @filename, @original_name, @receipt_date, @total, @project_id, @project_name, @gl_code, @notes, @description, @expense_category)
+  INSERT INTO receipts (user_id, report_id, filename, original_name, receipt_date, total, project_id, project_name, gl_code, notes, description, customer_names, company_names, venue, expense_category)
+  VALUES (@user_id, @report_id, @filename, @original_name, @receipt_date, @total, @project_id, @project_name, @gl_code, @notes, @description, @customer_names, @company_names, @venue, @expense_category)
 `);
 
 function createReceipt(data) {
@@ -246,6 +246,9 @@ function createReceipt(data) {
     project_name: '',
     gl_code: '',
     description: DEFAULT_DESCRIPTION,
+    customer_names: '',
+    company_names: '',
+    venue: '',
     expense_category: DEFAULT_EXPENSE_CATEGORY,
     ...data,
   });
@@ -275,7 +278,7 @@ function listUnassignedReceiptsForUser(userId) {
 }
 
 const updateReceiptStmt = db.prepare(`
-  UPDATE receipts SET receipt_date = @receipt_date, total = @total, project_id = @project_id, project_name = @project_name, gl_code = @gl_code, notes = @notes, description = @description, expense_category = @expense_category
+  UPDATE receipts SET receipt_date = @receipt_date, total = @total, project_id = @project_id, project_name = @project_name, gl_code = @gl_code, notes = @notes, description = @description, customer_names = @customer_names, company_names = @company_names, venue = @venue, expense_category = @expense_category
   WHERE id = @id
 `);
 

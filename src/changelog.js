@@ -7,6 +7,18 @@
 // dropping the leading "1.".
 const CHANGELOG = [
   {
+    version: '2.9',
+    date: '2026-10-07',
+    highlights: [
+      'Excel and PDF exports now use the company\'s new expense report template (new columns, layout and 26 receipt rows per page)',
+      'Receipts have three new optional fields - Customer name(s), Company(ies) and Where - that fill the matching columns. The old Description is now the "What" column',
+      'The GL code is split on export: everything before the first dash goes in Job Number, the rest in Cost Code',
+      'Removed the Supervisor field (the new template has no "Approved By" section)',
+      'Fixed the template\'s Grand Total, which was leaving Education out of the sum',
+      'The default "What" text is now just "Project Lunch" (no trailing colon)',
+    ],
+  },
+  {
     version: '2.8',
     date: '2026-10-03',
     highlights: [
